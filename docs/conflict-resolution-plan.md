@@ -20,32 +20,42 @@ To support effective collaboration while accommodating the diverse schedules of 
 - The team will evaluate whether the current scope is still achievable.
 - If the team cannot reasonably deliver on time with the reduced capacity, a revised timeline will be proposed to the customer.
 
-## Low-Quality Work
+## Supporting Quality and Growth as a Team
 
-- If a team member consistently submits work that does not meet quality expectations:
-  - Constructive feedback will be provided through GitHub pull request comments.
-  - They will be assigned simpler or more narrowly scoped tasks.
-  - A more experienced member will review their code prior to merging.
-- If there is no observable improvement after multiple rounds of feedback and support, the team will stop assigning critical tasks to that member and will plan around reduced capacity. This decision will be communicated transparently to the affected member.
-- The customer will not be informed unless overall deliverables are at risk.
+- If a team member is consistently struggling to meet quality expectations, we treat it first and foremost as a learning and support opportunity.
+  - Feedback will be shared constructively via GitHub pull request comments and conversations, with a focus on helping each other grow.
+  - The team may revisit whether the types of tasks being taken on are the best fit for the individual’s current skill level, and explore adjustments collaboratively.
+  - We’ll encourage pairing, mentoring, or peer support as needed, and make space for learning through simpler or more focused tasks when helpful.
+- If the same challenges continue over time despite feedback and support, the team may need to plan around current capacity more deliberately. Any such changes will be discussed openly with the individual involved.
+- The customer will only be informed if there is a meaningful risk to overall deliverables.
 
 ## Communication and Documentation
 
-- All important communication will occur within GitHub (issues, pull requests, or discussion threads).
+- All important communication will occur within GitHub (issues, pull requests, or discussion threads), Discord or weekly meetings which will be kept documented.
 - This ensures all decisions and progress are documented, traceable, and visible to the full team.
 - We recognize that unexpected challenges can arise. Team members are encouraged to communicate early if they anticipate delays or need help, so the team can adapt collaboratively.
+- Meetings will happen on Fridays 13:00-15:00
+- Regular communication between team members is recommended to facilitate team growth and idea generation.
 
 ## Customer Communication
 
-- The customer will only be contacted when deliverables, scope, or timelines are impacted.
-- Any communication will clearly explain:
+- The customer will be communicated with whenever a deliverable is ready for them.
+- With regards to problems within the project, the customer should only be informed if scope or timelines are impacted by the issue.
+- Any communication regarding issues will clearly explain:
   - The nature of the issue
   - The internal steps taken to address it
   - A proposed solution, such as a revised timeline or re-scoped deliverables
 
 ## Technical Disagreements
 
-- Disagreements on design or implementation will be discussed via GitHub Discussions, Issue threads or Discord.
+- Disagreements on major design or implementation decisions will be discussed via GitHub Discussions, Issue threads or Discord.
 - If consensus cannot be reached within 48 hours, the majority preference will be followed, or a lightweight vote will be held among the team.
-- All decisions will be documented in GitHub for future reference.
-
+- All major decisions will be documented in GitHub for future reference.
+- Minor decisions or differences in approach are a normal part of collaboration. It's better to choose a reasonable path forward and keep momentum than to let small disagreements disrupt progress.
+- Minor decisions include:
+  - Naming conventions that don't impact readability or consistency (i.e. sorted_list vs sorted_vector)
+  - Implementation details where multiple options are valid and the trade-offs are negligible
+  - Choice of utility functions, tools, or approaches when performance, maintainability, and clarity are not meaningfully affected
+  - Style preferences that are not enforced by linters or code formatters
+    - Linters and code formatters should be used with a shared project configuration before each commit
+    - This project configuration could be the default or a custom configuration built for the project
