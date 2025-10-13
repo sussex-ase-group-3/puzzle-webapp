@@ -3,7 +3,8 @@
 ### Tech Stack
 2025-10-10 MdlN: 
   No decision yet
-
+2025-10-13 MdlN:
+  Decision made to build web app using Node backend and React frontend (by 1 vote against 1 - tie break by team lead)
 ### Team Roles
 2025-10-10 MdlN: 
   MH has added dev profile templates to ease decision making for roles and tech stack
