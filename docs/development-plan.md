@@ -4,7 +4,7 @@ This project is a web application designed to generate and present solutions for
 
 ## Architecture
 
-The application will use a Node.js backend to handle puzzle generation and solution logic. The backend will expose a simple API for the frontend to consume.
+The application will use an Express backend to handle puzzle generation and solution logic. The backend will expose a simple API for the frontend to consume.
 
 The frontend will be built in React with TypeScript. The choice between a single-page application, multi-page architecture, or server-rendered approach is still under discussion.
 
@@ -26,7 +26,7 @@ The team follows a lightweight, iterative methodology inspired by Agile principl
 The tech stack for the project includes:
 
 - **Frontend**: React with TypeScript
-- **Backend**: Node.js
+- **Backend**: Express
 - **Testing**: Likely Jest, pending further evaluation
 - **CI/CD**: GitHub Actions, integrated with GitHub Projects workflows
 
