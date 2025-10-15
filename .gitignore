@@ -1,1 +1,82 @@
+# OS
 .DS_Store
+Thumbs.db
+
+# Node / JS
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+out/
+coverage/
+.vscode-test/
+*.tsbuildinfo
+
+# IDEs and editors
+.vscode/
+.idea/
+*.sw?
+*.swo
+*.swn
+
+# Environment and local settings
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Test outputs
+coverage/
+*.lcov
+
+# Logs
+logs/
+*.log
+debug.log*
+
+# Temporary files
+.tmp/
+temp/
+.cache/
+
+# OS backups / system junk
+*.bak
+*.orig
+*.rej
+
+# Lint and formatting caches
+.eslintcache
+.prettier-cache
+
+# Frontend / Vite / React
+apps/web/node_modules/
+apps/web/.vite/
+apps/web/dist/
+
+# API / backend
+apps/api/node_modules/
+apps/api/dist/
+apps/api/.tsbuildinfo
+
+# Shared packages
+packages/shared/dist/
+packages/shared/node_modules/
+
+# TypeScript incremental builds
+tsconfig.tsbuildinfo
+
+# Optional: local tooling / JetBrains / VSCode settings
+.idea/
+.vscode/
+*.iml
+
+# Optional: system files
+.trash/
