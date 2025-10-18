@@ -6,7 +6,7 @@ This project is a web application designed to generate and present solutions for
 
 The application will use an Express backend to handle puzzle generation and solution logic. The backend will expose a simple API for the frontend to consume.
 
-The frontend will be built in React with TypeScript. The choice between a single-page application, multi-page architecture, or server-rendered approach is still under discussion.
+The frontend will be multi-page built in React with TypeScript.
 
 Key architectural decisions:
 - Puzzle logic will preferably run on the server but may be client-side if needed for performance or responsiveness.
@@ -27,7 +27,7 @@ The tech stack for the project includes:
 
 - **Frontend**: React with TypeScript
 - **Backend**: Express
-- **Testing**: Likely Jest, pending further evaluation
+- **Testing**: Jest
 - **CI/CD**: GitHub Actions, integrated with GitHub Projects workflows
 
 No additional tooling or libraries have been selected at this stage but these will be chosen as the project evolves.
