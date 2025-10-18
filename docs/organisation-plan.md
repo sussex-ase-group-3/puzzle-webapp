@@ -5,16 +5,17 @@ The organisation plan outlines the structure of the project team, detailing the 
 ## Team Members
 
 - Abhishek Palaparthi: Pending developer profile, still waiting for GitHub username
-- Daiqi Yang: Pending developer profile, still waiting for GitHub username
+- Daiqi Yang: Complete
 - Max De La Nougerede: Complete
 - Mei Happs: Complete
-- Yash Patel: Pending developer profile, sent GitHub invitation but not yet joined
+- Yash Patel: Developer Profile Complete, Sent GitHub invitation but not yet joined
 
 ## Roles
 
 - Team lead: Max De La Nougerede
 - Quality assurance: Mei Happs
-- Unassigned: Abhishek Palaparthi, Daiqi Yang, Yash Patel
+- Backend developer: Yash Patel, Daiqi Yang
+- Unassigned: Abhishek Palaparthi
 
 Unassigned members will be assigned roles as soon as they have joined the GitHub and communicated their skills and desired roles.
 
