@@ -19,7 +19,7 @@ The team follows a lightweight, iterative methodology inspired by Agile principl
 - **Planning**: Major tasks and milestones are planned during weekly meetings, with flexibility to add new issues asynchronously throughout the week.
 - **Communication**: Team members collaborate primarily through GitHub — using issues, pull requests, and discussions — as well as during weekly meetings.
 - **Quality Assurance**: One team member is responsible for QA, testing, and maintaining a living style guide. All pull requests require their approval, though this can be overridden by the team lead if necessary.
-- **Testing**: Testing will be prioritized as time allows, with a preference for unit and integration tests. Tooling is still under evaluation.
+- **Testing**: Testing will be prioritized as time allows, with a preference for unit and integration tests, using Jest.
 
 ## Frameworks
 
