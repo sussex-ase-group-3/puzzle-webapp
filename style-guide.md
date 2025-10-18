@@ -14,9 +14,9 @@ some branches may still be created separately, i.e. documentation won't necessar
 
 this approach is intended to aid in focused development and simple task allocation.
 
-### testing branch
+### testing
 
-once effective testing is set up, we will be introducing a testing branch. this is a branch that goes between the main branch and other branches to ensure that main always remains in a working state.
+testing will happen on the main branch, with releases being tags on commits that pass all tests. this will remove a lot of testing overhead that shouldn't be necessary for a team of this size.
 
 ## code styling
 
