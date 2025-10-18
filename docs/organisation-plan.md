@@ -15,6 +15,7 @@ The organisation plan outlines the structure of the project team, detailing the 
 - Team lead: Max De La Nougerede
 - Quality assurance: Mei Happs
 - Backend developer: Yash Patel, Daiqi Yang
+- Frontend developer: Yash Patel
 - Unassigned: Abhishek Palaparthi
 
 Unassigned members will be assigned roles as soon as they have joined the GitHub and communicated their skills and desired roles.
