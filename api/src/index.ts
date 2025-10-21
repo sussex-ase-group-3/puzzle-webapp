@@ -1,10 +1,16 @@
-import Fastify from "fastify";
+import express from "express";
 
-const app = Fastify();
+const app = express();
 const PORT = Number(process.env.PORT ?? 3000);
 
-app.get("/", async () => ({ ok: true, service: "api" }));
+// Middleware
+app.use(express.json());
 
-app.listen({ port: PORT, host: "0.0.0.0" }).then(() => {
+// Routes
+app.get("/", (req, res) => {
+  res.json({ ok: true, service: "api" });
+});
+
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`API listening on http://localhost:${PORT}`);
 });
