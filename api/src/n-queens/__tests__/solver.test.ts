@@ -1,5 +1,4 @@
-import { describe, test, expect } from "@jest/globals";
-import { BoardState } from "../types.js";
+import { describe, test, expect } from "vitest";
 import { solve } from "../solver.js";
 
 describe("N-Queens Solver", () => {

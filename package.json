@@ -1,0 +1,21 @@
+{
+  "name": "puzzle-webapp",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:web\"",
+    "dev:api": "cd api && npm run dev",
+    "dev:web": "cd web && npm run dev",
+    "build": "npm run build:api && npm run build:web",
+    "build:api": "cd api && npm run build",
+    "build:web": "cd web && npm run build",
+    "test": "npm run test:api",
+    "test:api": "cd api && npm test -- --run",
+    "test:web": "cd web && npm test",
+    "test:all": "npm run test:api && npm run test:web",
+    "install:all": "npm install && cd api && npm install && cd ../web && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

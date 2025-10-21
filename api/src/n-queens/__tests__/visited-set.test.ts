@@ -1,4 +1,4 @@
-import { describe, test, expect } from "@jest/globals";
+import { describe, test, expect } from "vitest";
 import { BoardState } from "../types.js";
 import { wasPreviouslyComputed, recordExploredState } from "../visited-set.js";
 
