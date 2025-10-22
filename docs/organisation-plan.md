@@ -4,10 +4,11 @@ The organisation plan outlines the structure of the project team, detailing the 
 
 ## Team Members
 
-- Abhishek Palaparthi: Pending developer profile, still waiting for GitHub username
+- Abhishek Palaparthi: Pending developer profile, still waiting for GitHub username, may have left group ?
 - Daiqi Yang: Complete
 - Max De La Nougerede: Complete
 - Mei Happs: Complete
+- Tim Bartlett: Pending developer profile, GitHub invite sent, awaiting join
 - Yash Patel: Complete
 
 ## Roles
@@ -16,7 +17,7 @@ The organisation plan outlines the structure of the project team, detailing the 
 - Quality assurance: Mei Happs
 - Backend developer: Yash Patel, Daiqi Yang
 - Frontend developer: Yash Patel
-- Unassigned: Abhishek Palaparthi
+- Unassigned: Abhishek Palaparthi, Tim Bartlett
 
 Unassigned members will be assigned roles as soon as they have joined the GitHub and communicated their skills and desired roles.
 
@@ -42,3 +43,17 @@ Quality Assurance is in charge of:
   - Readable, maintainable, and aligned with team standards
 - Communicating and enforcing coding standards across the team
 - Collaborating with developers to identify and resolve quality issues early
+
+### Backend Developer
+
+Backend developers are in charge of:
+- Marking blockers on backend issues when they come up
+- Ensuring submitted code passes any tests given
+- Keeping up to date with any relevant documentation
+
+### Frontend Developer
+
+Frontend developers are in charge of:
+- Marking blockers on frontend issues when they come up
+- Ensuring the frontend is easy to navigate and displays all necessary information
+- Keeping up to date with any relevant documentation
