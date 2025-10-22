@@ -8,7 +8,7 @@ The organisation plan outlines the structure of the project team, detailing the 
 - Daiqi Yang: Complete
 - Max De La Nougerede: Complete
 - Mei Happs: Complete
-- Yash Patel: Developer Profile Complete, Sent GitHub invitation but not yet joined
+- Yash Patel: Complete
 
 ## Roles
 
