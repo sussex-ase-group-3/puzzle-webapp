@@ -4,11 +4,11 @@ The organisation plan outlines the structure of the project team, detailing the 
 
 ## Team Members
 
-- Daiqi Yang: Complete
-- Max De La Nougerede: Complete
-- Mei Happs: Complete
-- Tim Bartlett: Complete
-- Yash Patel: Complete
+- Daiqi Yang
+- Max De La Nougerede
+- Mei Happs
+- Tim Bartlett
+- Yash Patel
 
 ## Roles
 
