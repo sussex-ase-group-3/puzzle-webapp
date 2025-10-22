@@ -4,7 +4,6 @@ The organisation plan outlines the structure of the project team, detailing the 
 
 ## Team Members
 
-- Abhishek Palaparthi: Pending developer profile, still waiting for GitHub username, may have left group ?
 - Daiqi Yang: Complete
 - Max De La Nougerede: Complete
 - Mei Happs: Complete
@@ -17,9 +16,6 @@ The organisation plan outlines the structure of the project team, detailing the 
 - Quality assurance: Mei Happs
 - Backend developer: Daiqi Yang, Tim Bartlett, Yash Patel
 - Frontend developer: Tim Bartlett, Yash Patel
-- Unassigned: Abhishek Palaparthi
-
-Unassigned members will be assigned roles as soon as they have joined the GitHub and communicated their skills and desired roles.
 
 ## Responsibilities
 
