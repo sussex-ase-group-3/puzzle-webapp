@@ -8,16 +8,16 @@ The organisation plan outlines the structure of the project team, detailing the 
 - Daiqi Yang: Complete
 - Max De La Nougerede: Complete
 - Mei Happs: Complete
-- Tim Bartlett: Pending developer profile, GitHub invite sent, awaiting join
+- Tim Bartlett: Complete
 - Yash Patel: Complete
 
 ## Roles
 
 - Team lead: Max De La Nougerede
 - Quality assurance: Mei Happs
-- Backend developer: Yash Patel, Daiqi Yang
-- Frontend developer: Yash Patel
-- Unassigned: Abhishek Palaparthi, Tim Bartlett
+- Backend developer: Daiqi Yang, Tim Bartlett, Yash Patel
+- Frontend developer: Tim Bartlett, Yash Patel
+- Unassigned: Abhishek Palaparthi
 
 Unassigned members will be assigned roles as soon as they have joined the GitHub and communicated their skills and desired roles.
 
