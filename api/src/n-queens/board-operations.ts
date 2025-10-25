@@ -62,14 +62,17 @@ export function isSafe(boardState: BoardState, newPosition: Position): boolean {
  * (all N queens are placed).
  */
 export function isComplete(boardState: BoardState): boolean {
+
   let boardComplete = false; 
   const n = size(boardState);
   let count = 0;
+
   boardState.forEach((element) => {
     if (element !== -1) {
       count += 1;
     }
   });
+
   if (n === count) {
     boardComplete = true
   }
@@ -78,9 +81,25 @@ export function isComplete(boardState: BoardState): boolean {
 
 /**
  * Returns a new board state rotated 90 degrees clockwise.
+ * swap row and column first
+ * formula n - 1 - row
  */
 export function rotateBoard(boardState: BoardState): BoardState {
-  throw new Error("rotateBoard not implemented");
+  
+  const currentBoardState = cloneDeep(boardState);
+  const n = size(currentBoardState);
+  const newBoard = cloneDeep(currentBoardState)
+
+  currentBoardState.forEach((currentColumn, currentRow) => {
+
+     if (currentColumn !== -1) {
+        const newRow = cloneDeep(currentColumn)
+        const oldRow = cloneDeep(currentRow)
+        newBoard[newRow] = ((n - 1) - oldRow)
+     }    
+
+  });
+  return newBoard
 }
 
 /**
