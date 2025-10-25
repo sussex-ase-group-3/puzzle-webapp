@@ -1,11 +1,16 @@
 import { BoardState, Position } from "./types.js";
+import  { cloneDeep }  from 'lodash';
 
 /**
  * Places a queen at the specified position on the board.
  * Returns a new board state without mutating the original.
  */
 export function placeQueen(boardState: BoardState, newPosition: Position): BoardState {
-  throw new Error("placeQueen not implemented");
+  const newBoardState = cloneDeep(boardState)
+  const row = newPosition[0]
+  const column = newPosition[1]
+  newBoardState[row] = column
+  return newBoardState
 }
 
 /**
@@ -13,6 +18,7 @@ export function placeQueen(boardState: BoardState, newPosition: Position): Board
  * (no conflicts with existing queens).
  */
 export function isSafe(boardState: BoardState, newPosition: Position): boolean {
+  
   throw new Error("isSafe not implemented");
 }
 
