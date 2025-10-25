@@ -1,14 +1,26 @@
 import { BoardState, Position } from "./types.js";
-import  { cloneDeep, forEach, indexOf, size }  from 'lodash';
+import  { cloneDeep, size }  from 'lodash';
 
 /**
  * Places a queen at the specified position on the board.
  * Returns a new board state without mutating the original.
  */
 export function placeQueen(boardState: BoardState, newPosition: Position): BoardState {
+  
+  const n = size(boardState)
   const newBoardState = cloneDeep(boardState)
   const row = newPosition[0]
   const column = newPosition[1]
+
+  if (
+     row < 0 || row >= n ||
+     column < 0 || column >= n
+  ) {
+    throw new Error("Inputs are out of bounds")
+  }
+  if (newBoardState[row] !== -1) {
+    throw new Error("There is already a queen in this row");
+  }
   newBoardState[row] = column
   return newBoardState
 }
@@ -25,7 +37,7 @@ export function isSafe(boardState: BoardState, newPosition: Position): boolean {
   const newPositionRow = newPosition[0]
   const newPositionCol = newPosition[1]
   let isSafeSpace = true;
-
+  
   boardState.forEach((currentColumn, currentRow) => {
 
     if(currentColumn !== -1){
