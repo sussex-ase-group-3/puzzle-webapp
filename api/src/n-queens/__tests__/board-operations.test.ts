@@ -34,7 +34,7 @@ describe("Board Operations", () => {
       const originalBoard: BoardState = [1, -1, -1, -1];
       const position: Position = [0, 2];
 
-      expect(placeQueen(originalBoard, position)).toThrowError();
+      expect(() => placeQueen(originalBoard, position)).toThrowError();
     });
 
     test("should not allow out of bounds values", () => {
@@ -47,12 +47,12 @@ describe("Board Operations", () => {
       const position1_5: Position = [3, 0];
       const position1_6: Position = [0, 3];
 
-      expect(placeQueen(board1, position1_1)).toThrowError();
-      expect(placeQueen(board1, position1_2)).toThrowError();
-      expect(placeQueen(board1, position1_3)).toThrowError();
-      expect(placeQueen(board1, position1_4)).toThrowError();
-      expect(placeQueen(board1, position1_5)).not.toThrowError();
-      expect(placeQueen(board1, position1_6)).not.toThrowError();
+      expect(() => placeQueen(board1, position1_1)).toThrowError();
+      expect(() => placeQueen(board1, position1_2)).toThrowError();
+      expect(() => placeQueen(board1, position1_3)).toThrowError();
+      expect(() => placeQueen(board1, position1_4)).toThrowError();
+      expect(() => placeQueen(board1, position1_5)).not.toThrowError();
+      expect(() => placeQueen(board1, position1_6)).not.toThrowError();
 
 
       const position2_1: Position = [3, 0];
@@ -62,12 +62,12 @@ describe("Board Operations", () => {
       const position2_5: Position = [2, 0];
       const position2_6: Position = [0, 2];
 
-      expect(placeQueen(board2, position2_1)).toThrowError();
-      expect(placeQueen(board2, position2_2)).toThrowError();
-      expect(placeQueen(board2, position2_3)).toThrowError();
-      expect(placeQueen(board2, position2_4)).toThrowError();
-      expect(placeQueen(board2, position2_5)).not.toThrowError();
-      expect(placeQueen(board2, position2_6)).not.toThrowError();
+      expect(() => placeQueen(board2, position2_1)).toThrowError();
+      expect(() => placeQueen(board2, position2_2)).toThrowError();
+      expect(() => placeQueen(board2, position2_3)).toThrowError();
+      expect(() => placeQueen(board2, position2_4)).toThrowError();
+      expect(() => placeQueen(board2, position2_5)).not.toThrowError();
+      expect(() => placeQueen(board2, position2_6)).not.toThrowError();
     });
 
 
