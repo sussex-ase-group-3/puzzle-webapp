@@ -19,5 +19,4 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - run: cd api && npm install && npm run build && npm test
-      - run: cd web && npm install && npm run build && npm test
+      - run: npm ci && npm run build && npm test
