@@ -1,5 +1,5 @@
 import { BoardState, Position } from "./types.js";
-import  { cloneDeep }  from 'lodash';
+import  { cloneDeep, forEach, indexOf, size }  from 'lodash';
 
 /**
  * Places a queen at the specified position on the board.
@@ -16,10 +16,33 @@ export function placeQueen(boardState: BoardState, newPosition: Position): Board
 /**
  * Checks if placing a queen at the specified position would be safe
  * (no conflicts with existing queens).
+ * check how every queen position compares to current position against current queen
+ * the distance up and across between queens must be the same distance for it to be safe
+ * the difference between col indexes and row index must not be the same
  */
 export function isSafe(boardState: BoardState, newPosition: Position): boolean {
-  
-  throw new Error("isSafe not implemented");
+
+  const newPositionRow = newPosition[0]
+  const newPositionCol = newPosition[1]
+  let isSafeSpace = true;
+
+  boardState.forEach((currentColumn, currentRow) => {
+
+    if(currentColumn !== -1){
+
+      const columnDifference = Math.abs(currentColumn - newPositionCol);
+      const rowDifference = Math.abs(currentRow - newPositionRow)
+
+      if (columnDifference === rowDifference) {
+        isSafeSpace = false
+        
+      } 
+      if (currentColumn === newPositionCol) {
+        isSafeSpace = false
+      }
+    }
+  }); 
+  return isSafeSpace
 }
 
 /**
@@ -27,7 +50,18 @@ export function isSafe(boardState: BoardState, newPosition: Position): boolean {
  * (all N queens are placed).
  */
 export function isComplete(boardState: BoardState): boolean {
-  throw new Error("isComplete not implemented");
+  let boardComplete = false; 
+  const n = size(boardState);
+  let count = 0;
+  boardState.forEach((element) => {
+    if (element !== -1) {
+      count += 1;
+    }
+  });
+  if (n === count) {
+    boardComplete = true
+  }
+  return boardComplete
 }
 
 /**
