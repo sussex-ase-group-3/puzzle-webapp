@@ -1,8 +1,9 @@
-import { flipBoard, isComplete, placeQueen, rotateBoard } from "./board-operations.js";
+import { debug } from "console";
+import { flipBoard, isComplete, isSafe, placeQueen, rotateBoard } from "./board-operations.js";
 import { BoardState } from "./types.js";
 import { recordExploredState, wasPreviouslyComputed } from "./visited-set.js";
 
-let visitedSet: Set<BoardState> = new Set()
+let visitedSet: Set<String> = new Set()
 
 /**
  * Solves the N-Queens problem and returns all solutions including symmetric variants.
@@ -11,16 +12,16 @@ let visitedSet: Set<BoardState> = new Set()
  * @param boardState - The current state of the board
  * @returns Array of all solutions, where each solution includes the original and its 7 symmetric variants
  */
-export function solve(boardState: BoardState): Set<BoardState> {
+export function solve(boardState: BoardState): Set<String> {
   if (wasPreviouslyComputed(boardState, visitedSet)) { return new Set() }
 
-  let results: Set<BoardState> = new Set()
-  for (let _ = 0; _ < 4; _++) {
+  let results: Set<String> = new Set()
+    for (let _ = 0; _ < 4; _++) {
     boardState = rotateBoard(boardState)
     recordExploredState(boardState, visitedSet)
     recordExploredState(flipBoard(boardState), visitedSet)
-    results.add(boardState)
-    results.add(flipBoard(boardState))
+    results.add(boardState.toString())
+    results.add(flipBoard(boardState).toString())
   }
 
   if (isComplete(boardState)) {
@@ -29,9 +30,11 @@ export function solve(boardState: BoardState): Set<BoardState> {
 
   results = new Set()
 
-  let first_empty = boardState.findIndex((i) => i != -1)
+  let first_empty = boardState.findIndex((i) => i == -1)
   for (let i = 0; i < boardState.length; i++) {
-    results = results.union(solve(placeQueen(boardState, [first_empty, i])))
+    if (isSafe(boardState, [first_empty, i])) {
+      results = results.union(solve(placeQueen(boardState, [first_empty, i])))
+    }
   }
 
   return results
