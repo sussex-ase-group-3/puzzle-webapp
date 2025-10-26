@@ -1,11 +1,12 @@
 import { describe, test, expect } from "vitest";
 import { BoardState } from "../types.js";
 import { wasPreviouslyComputed, recordExploredState } from "../visited-set.js";
+import { debug } from "console";
 
 describe("Visited Set Operations", () => {
   describe("wasPreviouslyComputed", () => {
     test("should return false for empty visited set", () => {
-      const emptyVisitedSet = new Set<string>();
+      const emptyVisitedSet = new Set<String>();
       const boardState: BoardState = [1, 3, 0, 2];
 
       const result = wasPreviouslyComputed(boardState, emptyVisitedSet);
@@ -14,11 +15,10 @@ describe("Visited Set Operations", () => {
     });
 
     test("should return true for previously stored board state", () => {
-      const visitedSet = new Set<string>();
+      const visitedSet = new Set<String>();
       const boardState: BoardState = [1, 3, 0, 2];
-      const serializedState = boardState.join(","); // "1,3,0,2"
 
-      visitedSet.add(serializedState);
+      recordExploredState(boardState, visitedSet)
 
       const result = wasPreviouslyComputed(boardState, visitedSet);
 
@@ -26,11 +26,11 @@ describe("Visited Set Operations", () => {
     });
 
     test("should return false for unseen board state", () => {
-      const visitedSet = new Set<string>();
+      const visitedSet = new Set<String>();
       const storedBoard: BoardState = [1, 3, 0, 2];
       const unseenBoard: BoardState = [0, 2, 1, 3];
 
-      visitedSet.add(storedBoard.join(","));
+      visitedSet.add(storedBoard.toString());
 
       const result = wasPreviouslyComputed(unseenBoard, visitedSet);
 
@@ -40,7 +40,7 @@ describe("Visited Set Operations", () => {
 
   describe("recordExploredState", () => {
     test("should add new board state to visited set", () => {
-      const visitedSet = new Set<string>();
+      const visitedSet = new Set<String>();
       const boardState: BoardState = [1, 3, 0, 2];
 
       recordExploredState(boardState, visitedSet);
@@ -50,7 +50,7 @@ describe("Visited Set Operations", () => {
     });
 
     test("should handle duplicate board state additions", () => {
-      const visitedSet = new Set<string>();
+      const visitedSet = new Set<String>();
       const boardState: BoardState = [1, 3, 0, 2];
 
       recordExploredState(boardState, visitedSet);
@@ -61,7 +61,7 @@ describe("Visited Set Operations", () => {
     });
 
     test("should mutate the visited set by adding state", () => {
-      const visitedSet = new Set<string>();
+      const visitedSet = new Set<String>();
       const boardState: BoardState = [1, 3, 0, 2];
 
       expect(visitedSet.size).toBe(0); // Empty initially
@@ -73,7 +73,7 @@ describe("Visited Set Operations", () => {
     });
 
     test("should not mutate original board state", () => {
-      const visitedSet = new Set<string>();
+      const visitedSet = new Set<String>();
       const originalBoard: BoardState = [1, 3, 0, 2];
       const boardCopy = [...originalBoard];
 
