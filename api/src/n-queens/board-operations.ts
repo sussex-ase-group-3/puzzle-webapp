@@ -1,3 +1,4 @@
+import { debug } from "console";
 import { BoardState, Position } from "./types.js";
 import  { cloneDeep, size }  from 'lodash';
 
@@ -11,7 +12,7 @@ import  { cloneDeep, size }  from 'lodash';
  * @throws {Error} For out of bounds and if queen already exist in position
  */
 export function placeQueen(boardState: BoardState, newPosition: Position): BoardState {
-  
+
   const n = size(boardState)
   const newBoardState = cloneDeep(boardState)
   const row = newPosition[0]
@@ -42,7 +43,7 @@ export function isSafe(boardState: BoardState, newPosition: Position): boolean {
   const newPositionRow = newPosition[0]
   const newPositionCol = newPosition[1]
   let isSafeSpace = true;
-  
+
   boardState.forEach((currentColumn, currentRow) => {
 
     if(currentColumn !== -1){
@@ -52,13 +53,13 @@ export function isSafe(boardState: BoardState, newPosition: Position): boolean {
 
       if (columnDifference === rowDifference) {
         isSafeSpace = false
-        
-      } 
+
+      }
       if (currentColumn === newPositionCol) {
         isSafeSpace = false
       }
     }
-  }); 
+  });
   return isSafeSpace
 }
 
@@ -69,32 +70,18 @@ export function isSafe(boardState: BoardState, newPosition: Position): boolean {
  * @returns {boolean} A boolean value true for complete otherwise false.
  */
 export function isComplete(boardState: BoardState): boolean {
-
-  let boardComplete = false; 
-  const n = size(boardState);
-  let count = 0;
-
-  boardState.forEach((element) => {
-    if (element !== -1) {
-      count += 1;
-    }
-  });
-
-  if (n === count) {
-    boardComplete = true
-  }
-  return boardComplete
+  return boardState.every((x) => x != -1)
 }
 
 /**
  * Function purpose: To rotate board 90 degrees clockwise.
- * function swaps idx with col for new row, formula (n-1) - row for new col 
- * 
+ * function swaps idx with col for new row, formula (n-1) - row for new col
+ *
  * @param {BoardState} boardState, current board state, idx is row & val is col
  * @returns {BoardState} Returns a new board state rotated 90 degrees clockwise.
  */
 export function rotateBoard(boardState: BoardState): BoardState {
-  
+
   const currentBoardState = cloneDeep(boardState);
   const n = size(currentBoardState);
   const newBoard = cloneDeep(currentBoardState);
@@ -105,7 +92,7 @@ export function rotateBoard(boardState: BoardState): BoardState {
         const newRow = cloneDeep(currentColumn)
         const oldRow = cloneDeep(currentRow)
         newBoard[newRow] = ((n - 1) - oldRow)
-     }    
+     }
 
   });
   return newBoard
@@ -114,7 +101,7 @@ export function rotateBoard(boardState: BoardState): BoardState {
 /**
  * Function purpose: To flip current board horizontally.
  * row value stays the same, new column is calculated using formyla (n-1)-col
- * 
+ *
  * @param {BoardState} boardState, current board state, idx is row & val is col
  * @returns {BoardState} Returns a new board state flipped horizontally.
  */
@@ -130,7 +117,7 @@ export function flipBoard(boardState: BoardState): BoardState {
         const newRow = cloneDeep(currentRow)
         const col = cloneDeep(currentColumn)
         newBoard[newRow] = ((n - 1) - col)
-     }    
+     }
 
   });
   return newBoard
