@@ -1,3 +1,4 @@
+import { debug } from "console";
 import { BoardState, Position } from "./types.js";
 import lodash from "lodash";
 const { cloneDeep, size } = lodash;
