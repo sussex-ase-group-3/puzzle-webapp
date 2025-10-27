@@ -9,14 +9,14 @@ describe("fetchSolutions", () => {
 
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => fakeData,
+      json: async () => fakeData
     }) as any;
 
     const res = await fetchSolutions({ n: 4, partial: [-1, -1, -1, -1] });
     expect(res).toEqual(fakeData);
     expect(fetch).toHaveBeenCalledWith(
-      "/api/solver",
-      expect.objectContaining({ method: "POST" }),
+      "/api/nqueens/solve",
+      expect.objectContaining({ method: "POST" })
     );
   });
 });
