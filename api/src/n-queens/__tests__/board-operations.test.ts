@@ -54,7 +54,6 @@ describe("Board Operations", () => {
       expect(() => placeQueen(board1, position1_5)).not.toThrowError();
       expect(() => placeQueen(board1, position1_6)).not.toThrowError();
 
-
       const position2_1: Position = [3, 0];
       const position2_2: Position = [0, 3];
       const position2_3: Position = [-1, 0];
@@ -69,8 +68,6 @@ describe("Board Operations", () => {
       expect(() => placeQueen(board2, position2_5)).not.toThrowError();
       expect(() => placeQueen(board2, position2_6)).not.toThrowError();
     });
-
-
   });
 
   describe("isSafe", () => {
@@ -129,7 +126,7 @@ describe("Board Operations", () => {
     });
     test("should return false for non-empty incomplete board", () => {
       const completeBoard1: BoardState = [1, 3, 0, -1];
-      const completeBoard2: BoardState = [1, 3, -1, 2]
+      const completeBoard2: BoardState = [1, 3, -1, 2];
       const result1 = isComplete(completeBoard1);
       const result2 = isComplete(completeBoard2);
 
@@ -159,6 +156,36 @@ describe("Board Operations", () => {
 
       expect(originalBoard).toEqual(boardCopy); // Original unchanged
       expect(result).not.toBe(originalBoard); // Different reference
+    });
+
+    describe("rotateBoard - four rotations test", () => {
+      test("should return to original board after 4 rotations", () => {
+        const originalBoard: BoardState = [1, 3, 0, 2]; // 4x4 board with queens
+
+        let currentBoard = [...originalBoard];
+        console.log("Original board:", originalBoard);
+
+        // Rotate 4 times
+        for (let i = 1; i <= 4; i++) {
+          currentBoard = rotateBoard(currentBoard);
+          console.log(`After rotation ${i}:`, currentBoard);
+        }
+
+        expect(currentBoard).toEqual(originalBoard);
+      });
+
+      test("should work with partial board", () => {
+        const partialBoard: BoardState = [1, -1, 0, -1]; // Partial 4x4 board
+
+        let currentBoard = [...partialBoard];
+
+        // Rotate 4 times
+        for (let i = 1; i <= 4; i++) {
+          currentBoard = rotateBoard(currentBoard);
+        }
+
+        expect(currentBoard).toEqual(partialBoard);
+      });
     });
   });
 

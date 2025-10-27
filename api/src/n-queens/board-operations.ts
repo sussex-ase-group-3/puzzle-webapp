@@ -1,6 +1,7 @@
 import { debug } from "console";
 import { BoardState, Position } from "./types.js";
-import  { cloneDeep, size }  from 'lodash';
+import lodash from "lodash";
+const { cloneDeep, size } = lodash;
 
 /**
  * Function purpose: Places a queen at a specified position on the board.
@@ -11,24 +12,23 @@ import  { cloneDeep, size }  from 'lodash';
  * @returns {BoardState} A new board state with the queen placed.
  * @throws {Error} For out of bounds and if queen already exist in position
  */
-export function placeQueen(boardState: BoardState, newPosition: Position): BoardState {
+export function placeQueen(
+  boardState: BoardState,
+  newPosition: Position,
+): BoardState {
+  const n = size(boardState);
+  const newBoardState = cloneDeep(boardState);
+  const row = newPosition[0];
+  const column = newPosition[1];
 
-  const n = size(boardState)
-  const newBoardState = cloneDeep(boardState)
-  const row = newPosition[0]
-  const column = newPosition[1]
-
-  if (
-     row < 0 || row >= n ||
-     column < 0 || column >= n
-  ) {
-    throw new Error("Inputs are out of bounds")
+  if (row < 0 || row >= n || column < 0 || column >= n) {
+    throw new Error("Inputs are out of bounds");
   }
   if (newBoardState[row] !== -1) {
     throw new Error("There is already a queen in this row");
   }
-  newBoardState[row] = column
-  return newBoardState
+  newBoardState[row] = column;
+  return newBoardState;
 }
 
 /**
@@ -39,28 +39,24 @@ export function placeQueen(boardState: BoardState, newPosition: Position): Board
  * @returns {boolean} A boolean value true for safe otherwise false.
  */
 export function isSafe(boardState: BoardState, newPosition: Position): boolean {
-
-  const newPositionRow = newPosition[0]
-  const newPositionCol = newPosition[1]
+  const newPositionRow = newPosition[0];
+  const newPositionCol = newPosition[1];
   let isSafeSpace = true;
 
   boardState.forEach((currentColumn, currentRow) => {
-
-    if(currentColumn !== -1){
-
+    if (currentColumn !== -1) {
       const columnDifference = Math.abs(currentColumn - newPositionCol);
-      const rowDifference = Math.abs(currentRow - newPositionRow)
+      const rowDifference = Math.abs(currentRow - newPositionRow);
 
       if (columnDifference === rowDifference) {
-        isSafeSpace = false
-
+        isSafeSpace = false;
       }
       if (currentColumn === newPositionCol) {
-        isSafeSpace = false
+        isSafeSpace = false;
       }
     }
   });
-  return isSafeSpace
+  return isSafeSpace;
 }
 
 /**
@@ -70,7 +66,7 @@ export function isSafe(boardState: BoardState, newPosition: Position): boolean {
  * @returns {boolean} A boolean value true for complete otherwise false.
  */
 export function isComplete(boardState: BoardState): boolean {
-  return boardState.every((x) => x != -1)
+  return boardState.every((x) => x != -1);
 }
 
 /**
@@ -81,21 +77,18 @@ export function isComplete(boardState: BoardState): boolean {
  * @returns {BoardState} Returns a new board state rotated 90 degrees clockwise.
  */
 export function rotateBoard(boardState: BoardState): BoardState {
-
   const currentBoardState = cloneDeep(boardState);
   const n = size(currentBoardState);
-  const newBoard = cloneDeep(currentBoardState);
+  const newBoard = new Array(n).fill(-1);
 
   currentBoardState.forEach((currentColumn, currentRow) => {
-
-     if (currentColumn !== -1) {
-        const newRow = cloneDeep(currentColumn)
-        const oldRow = cloneDeep(currentRow)
-        newBoard[newRow] = ((n - 1) - oldRow)
-     }
-
+    if (currentColumn !== -1) {
+      const newRow = cloneDeep(currentColumn);
+      const oldRow = cloneDeep(currentRow);
+      newBoard[newRow] = n - 1 - oldRow;
+    }
   });
-  return newBoard
+  return newBoard;
 }
 
 /**
@@ -106,20 +99,16 @@ export function rotateBoard(boardState: BoardState): BoardState {
  * @returns {BoardState} Returns a new board state flipped horizontally.
  */
 export function flipBoard(boardState: BoardState): BoardState {
-
   const currentBoardState = cloneDeep(boardState);
-  const newBoard = cloneDeep(boardState);
+  const newBoard = new Array(size(currentBoardState)).fill(-1);
   const n = size(currentBoardState);
 
   currentBoardState.forEach((currentColumn, currentRow) => {
-
-     if (currentColumn !== -1) {
-        const newRow = cloneDeep(currentRow)
-        const col = cloneDeep(currentColumn)
-        newBoard[newRow] = ((n - 1) - col)
-     }
-
+    if (currentColumn !== -1) {
+      const newRow = cloneDeep(currentRow);
+      const col = cloneDeep(currentColumn);
+      newBoard[newRow] = n - 1 - col;
+    }
   });
-  return newBoard
-
+  return newBoard;
 }
