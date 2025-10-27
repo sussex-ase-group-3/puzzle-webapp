@@ -17,7 +17,7 @@
   Team roles are decided (subject to change):
     Team Lead - MdlN
     QA - MH
-    Backend Devs - YP, DY (TB. MH if needed)
+    Backend Devs - YP, DY, TB. (MH if needed)
     Frontend Devs - YP, TB (MdlN if needed)
   Roles will be flexible to meet demand
 
