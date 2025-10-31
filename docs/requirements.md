@@ -1,108 +1,125 @@
-# Puzzle Web App — Living Requirements Document
+# Requirements
 
-*This document evolves with each project task to capture requirements as they develop. It focuses on **************************************what************************************** the system must do (requirements), while technical specifications (data models, APIs, designs) live in separate documents.*
+This document evolves with each project task to capture requirements as they develop. It focuses on **what** the system must do (requirements), while technical specifications (data models, APIs, designs) live in separate documents.
 
 ---
 
-## 1. Overview
+## Overview
 
 The goal of this web application is to provide an offline-capable, browser-based platform for solving and visualising various puzzles. This document is **living**: it will be updated at each task/milestone to reflect the current, agreed requirements.
 
 ---
 
-## 2. Related Documents
+## Related Documents
 
 To maintain clarity and modularity, supporting documents are maintained separately:
 
-* **Data Model Specification** – defines the data structures used for each puzzle.
-* **Decisions Log** – records major architectural and design decisions.
-* **Project Plan** – composed of:
-
-  * **Organization Plan** – team roles and responsibilities
-  * **Development Plan** – overview of architecture and methodology choices
-  * **Conflict Resolution Plan** – agreed approaches to team/process issues
+- Data Model Specification – defines the data structures used for each puzzle.
+- Decisions Log – records major architectural and design decisions.
+- Project Plan – composed of:
+  - Organization Plan – team roles and responsibilities
+  - Development Plan – overview of architecture and methodology choices
+  - Conflict Resolution Plan – agreed approaches to team/process issues
 
 This requirements document references these documents where relevant but does not duplicate their contents.
 
 ---
 
-## 3. Structure of this Document
+## Structure of this Document
 
 This document is designed to be living and cumulative:
 
-* **Core Requirements** – system-wide functional and non-functional requirements applied across puzzles.
-* **Task-specific Sections** – each new deliverable appends a section with its own requirements.
-* **Version History** – dated notes summarising changes.
+### Core Requirements
+
+system-wide functional and non-functional requirements applied across puzzles.
+
+### Task-specific Sections:
+
+each new deliverable appends a section with its own requirements.
+
+### Version History
+
+dated notes summarising changes.
 
 ---
 
-## 4. Core System Requirements
+## Core System Requirements
 
-### 4.1 Functional Requirements (Global)
+### Functional Requirements
 
-* **F1:** The application shall run fully offline after installation.
-* **F2:** The user shall be able to select different puzzle types (as they become available).
-* **F3:** Each puzzle shall provide interactive input appropriate to its model (e.g., board/grid where relevant).
-* **F4:** The system shall generate solutions for a given input configuration.
-* **F5:** The system shall display one or multiple valid solutions, when available.
-* **F6:** The system shall clearly indicate invalid inputs or impossible configurations.
+- The application shall run fully offline after installation.
+- The user shall be able to select different puzzle types (as they become available).
+- Each puzzle shall provide interactive input appropriate to its model (e.g., board/grid where relevant).
+- The system shall generate solutions for a given input configuration.
+- The system shall display one or multiple valid solutions, when available.
+- The system shall clearly indicate invalid inputs or impossible configurations.
 
-### 4.2 Non-Functional Requirements (Global)
+### Non-Functional Requirements
 
-* **NFR1:** Modular architecture separating frontend and backend.
-* **NFR2:** Compatibility with local browsers (e.g., Chrome, Firefox, Edge) without internet connection.
-* **NFR3:** Consistent, usable UI/UX across puzzles.
-* **NFR4:** Accessible UI.
+- Modular architecture separating frontend and backend.
+- Compatibility with local browsers (e.g., Chrome, Firefox, Edge) without internet connection.
+- Consistent, usable UI/UX across puzzles.
+- Accessible UI.
 
 ---
 
-## 5. Task 2 — N-Queens
-
-### 5.1 Overview
+## Task 2: — N-Queens
 
 Implement the N-Queens puzzle, where the user inputs a partial board configuration and the system computes all valid completions. This task establishes the initial, demonstrable version of the app.
 
-### 5.2 Functional Requirements (Task 2)
+### Functional Requirements
 
-* **T2-FR1:** The user shall select the board size **N** (1 ≤ N ≤ 20).
-* **T2-FR2:** The user shall toggle queens on a grid to define a **partial** configuration.
-* **T2-FR3:** The app shall **prevent submission** (disable Solve) when the current partial has **vertical or diagonal** conflicts.
-* **T2-FR4:** Upon clicking **Solve**, the frontend shall submit the current configuration to the backend.
-* **T2-FR5:** The backend shall return all valid completions of the given partial configuration.
-* **T2-FR6:** The frontend shall display all returned solutions and allow navigation between them (e.g., Next/Prev).
-* **T2-FR7:** The frontend shall display a clear message when **no solutions** are found.
+- The user shall select the board size `N` (1 ≤ N ≤ 20).
+- The user shall toggle queens on a grid to define a **partial** configuration.
+- The app shall **prevent submission** (disable Solve) when the current partial has **vertical or diagonal** conflicts.
+- Upon clicking `Solve`, the frontend shall submit the current configuration to the backend.
+- The backend shall return all valid completions of the given partial configuration.
+- The frontend shall display all returned solutions and allow navigation between them (e.g., Next/Prev).
+- The frontend shall display a clear message when `no solutions` are found.
 
-### 5.3 Non-Functional Requirements (Task 2)
+### Non-Functional Requirements
 
-* **T2-NFR1:** The UI should remain responsive up to **N = 14**; beyond this, performance degradation is acceptable.
-* **T2-NFR2:** Solution computation shall occur in the backend; the frontend shall not implement a solver.
-* **T2-NFR3:** Frontend validation shall be lightweight (no exhaustive solving logic).
+- The UI should remain responsive up to `N = 11`; beyond this, performance degradation is acceptable.
+- Solution computation shall occur in the backend; the frontend shall not implement a solver.
+- Frontend validation shall be lightweight (no exhaustive solving logic).
 
-### 5.4 Validation Rules (Task 2)
+### Validation Rules
 
-* Horizontal conflicts are inherently prevented (one queen per row).
-* **Vertical conflicts**: two rows must not contain the same column value.
-* **Diagonal conflicts**: two placed queens must not share `row - col` or `row + col` values.
-* When any conflict is present, the **Solve** action is disabled and a user-facing message is shown.
+- Horizontal conflicts are inherently prevented (one queen per row).
+- Vertical conflicts: two rows must not contain the same column value.
+- Diagonal conflicts: two placed queens must not share `row - col` or `row + col` values.
+- When any conflict is present, the `Solve` action is disabled and a user-facing message is shown.
 
-### 5.5 Acceptance Criteria (Task 2)
+### Acceptance Criteria
 
-* Given a valid partial, submitting **Solve** results in solutions being displayed; when multiple exist, the user can navigate between them.
-* Given an invalid partial (vertical/diagonal conflict), the **Solve** action is disabled and an explanatory message is visible.
-* Given a valid partial with **no** completing solutions, the user is informed clearly that no solutions exist.
-* The application runs locally without external network calls at runtime.
-
----
-
-## 6. Task 3 — Polysphere Puzzle *(placeholder)*
-
-This section will be populated once new requirements are revealed. 
+- Given a valid partial, submitting `Solve` results in solutions being displayed; when multiple exist, the user can navigate between them.
+- Given an invalid partial (vertical/diagonal conflict), the `Solve` action is disabled and an explanatory message is visible.
+- Given a valid partial with no completing solutions, the user is informed clearly that no solutions exist.
+- The application runs locally without external network calls at runtime.
 
 ---
 
-## 7. Version History
+## Task 3: Polysphere Puzzle _(placeholder)_
 
-| Date       | Author              | Description                                             |
-| ---------- | ------------------- | ------------------------------------------------------- |
-| 2025-10-25 | Max de la Nougerede | Initial living requirements document (Task 2 baseline). |
-|            |                     |                                                         |
+Implement the Polysphere puzzle, where the user inputs a partial board configuration and the system computes all valid completions. This task establishes the initial, demonstrable version of the app.
+
+### Functional Requirements
+
+- The user should be able to drag and drop pieces onto the board for a partial configuration.
+- The user should not be able to place pieces in ways that result in multiple pieces occupying the same cells.
+- Upon clicking `Solve`, the frontend shall submit the current configuration to the backend.
+- The backend shall yield all valid completions of the given partial configuration one at a time.
+- The frontend shall display all returned solutions and allow navigation between them (e.g., Next/Prev).
+- The frontend shall display a clear message when `no solutions` are found.
+
+### Non-Functional Requirements
+
+- Solution computation shall occur in the backend; the frontend shall not implement a solver.
+- Frontend validation shall be lightweight (no exhaustive solving logic).
+
+### Acceptance Criteria
+
+- Given a valid partial, submitting `Solve` results in solutions being displayed; when multiple exist, the user can navigate between them.
+- Given an invalid partial (vertical/diagonal conflict), the `Solve` action is disabled and an explanatory message is visible.
+- Given a valid partial with no completing solutions, the user is informed clearly that no solutions exist.
+- The application runs locally without external network calls at runtime.
