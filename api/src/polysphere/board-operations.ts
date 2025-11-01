@@ -5,10 +5,8 @@ import lodash from "lodash";
 const { cloneDeep, size } = lodash;
 
 /**
- * Select the next piece to place using largest-by-bounding-box heuristic
- * @param remainingPieces Set of piece IDs that haven't been placed yet
- * @returns The ID of the piece with the largest bounding box (width × height)
- * @throws Error if no pieces remain
+ * Creates an empty 5x11 board filled with zeros
+ * @returns {Board} A new empty board
  */
 export function selectNextPiece(remainingPieces: Set<number>): number {
   if (remainingPieces.size === 0) {
@@ -32,6 +30,16 @@ export function createEmptyBoard(): Board {
   return Array(5)
     .fill(null)
     .map(() => Array(11).fill(0));
+}
+
+export function placePiece(
+  state: PuzzleState,
+  pieceId: number,
+  rotations: number,
+  flipped: boolean,
+  position: Position,
+): PuzzleState {
+  throw new Error("placePiece not implemented");
 }
 
 export function flipHorizontal(shape: boolean[][]): boolean[][] {
