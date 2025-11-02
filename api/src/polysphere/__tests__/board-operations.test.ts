@@ -1,7 +1,8 @@
 import { describe, test, expect } from "vitest";
 import { selectNextPiece } from "../board-operations.js";
-import { isComplete, createEmptyBoard } from "../board-operations.js";
+import { isComplete, createEmptyBoard, canPlacePiece } from "../board-operations.js";
 import { PuzzleState } from "../types.js";
+import { getPiece } from "../pieces.js";
 
 describe("Board Operations", () => {
   describe("selectNextPiece", () => {
@@ -28,9 +29,7 @@ describe("Board Operations", () => {
       expect(selectNextPiece(new Set([11, 5, 1]))).toBe(5);
     });
   });
-});
 
-describe("Board Operations", () => {
   describe("isComplete", () => {
     test("should return true when no pieces remain and no remaining space", () => {
       const board = createEmptyBoard();
@@ -88,6 +87,57 @@ describe("Board Operations", () => {
       };
 
       expect(isComplete(state)).toBe(false);
+    });
+  });
+
+  describe("canPlacePiece", () => {
+    test("should return true for valid placements", () => {
+      const board = createEmptyBoard();
+
+      expect(canPlacePiece(board, getPiece(1), 0, false, [1, 1])).toBe(true);
+      expect(canPlacePiece(board, getPiece(10), 0, false, [1, 2])).toBe(true);
+      expect(canPlacePiece(board, getPiece(11), 0, false, [3, 9])).toBe(true); // exact boundary fit
+      expect(canPlacePiece(board, getPiece(10), 1, false, [1, 1])).toBe(true); // 90° rotation fits
+      expect(canPlacePiece(board, getPiece(2), 0, true, [1, 1])).toBe(true); // flipped asymmetric piece
+      expect(canPlacePiece(board, getPiece(3), 2, true, [1, 1])).toBe(true); // 180° rotation + flip
+    });
+
+    test("should return false for out of bounds placements", () => {
+      const board = createEmptyBoard();
+
+      expect(canPlacePiece(board, getPiece(5), 0, false, [0, 8])).toBe(false); // right edge
+      expect(canPlacePiece(board, getPiece(10), 0, false, [4, 0])).toBe(false); // bottom edge
+      expect(canPlacePiece(board, getPiece(11), 0, false, [3, 10])).toBe(false); // one cell beyond
+      expect(canPlacePiece(board, getPiece(10), 1, false, [2, 1])).toBe(false); // rotated extends beyond
+    });
+
+    test("should return false for collisions with existing pieces", () => {
+      const board = createEmptyBoard();
+      board[1][1] = 5;
+      board[1][2] = 5;
+
+      expect(canPlacePiece(board, getPiece(1), 0, false, [1, 1])).toBe(false); // direct overlap
+      expect(canPlacePiece(board, getPiece(2), 0, false, [1, 0])).toBe(false); // partial overlap
+    });
+
+    test("should return true when false cells overlap occupied areas", () => {
+      const board = createEmptyBoard();
+      board[2][1] = 1;
+
+      // Piece 2 has false cells that can overlap occupied areas
+      expect(canPlacePiece(board, getPiece(2), 0, false, [2, 0])).toBe(true);
+    });
+
+    test("should handle invalid rotation parameters", () => {
+      const board = createEmptyBoard();
+
+      expect(() => {
+        canPlacePiece(board, getPiece(1), -1, false, [1, 1]);
+      }).toThrowError();
+
+      expect(() => {
+        canPlacePiece(board, getPiece(1), 4, false, [1, 1]);
+      }).toThrowError();
     });
   });
 });

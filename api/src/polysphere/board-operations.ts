@@ -1,5 +1,5 @@
 import { getPiece } from "./pieces.js"
-import { Board, PuzzleState } from "./types.js";
+import { Board, PuzzleState, Piece, Position } from "./types.js";
 import { getPieceBoundingBoxArea } from "./pieces.js";
 
 /**
@@ -43,3 +43,22 @@ export function isComplete(state: PuzzleState): boolean {
 
   return state.remainingPieces.size === 0 && !hasZero;
 };
+
+/**
+ * Check if a piece can be placed at the specified position on the board
+ * @param board Current board state
+ * @param piece The piece to place
+ * @param rotations Number of 90-degree clockwise rotations (0-3)
+ * @param flipped Whether the piece should be horizontally flipped
+ * @param position Position to place the piece at
+ * @returns true if the piece can be placed, false otherwise
+ */
+export function canPlacePiece(
+  board: Board,
+  piece: Piece,
+  rotations: number,
+  flipped: boolean,
+  position: Position,
+): boolean {
+  throw new Error("canPlacePiece not implemented");
+}
