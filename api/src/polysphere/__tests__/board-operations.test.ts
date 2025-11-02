@@ -1,5 +1,11 @@
 import { describe, test, expect } from "vitest";
-import { isComplete, createEmptyBoard, canPlacePiece, placePiece } from "../board-operations.js";
+import {
+  solve,
+  createEmptyBoard,
+  isComplete,
+  canPlacePiece,
+  placePiece,
+} from "../board-operations.js";
 import { PuzzleState, Position } from "../types.js";
 import { getPiece } from "../pieces.js";
 import { range } from "../../utils.js";
@@ -192,8 +198,8 @@ describe("Board Operations", () => {
       for (let row = 0; row < 5; row++) {
         for (let col = 0; col < 11; col++) {
           board[row][col] = 1; // Any non-zero piece ID
-        };
-      };
+        }
+      }
 
       const state: PuzzleState = {
         board,
@@ -218,8 +224,8 @@ describe("Board Operations", () => {
       for (let row = 0; row < 5; row++) {
         for (let col = 0; col < 11; col++) {
           board[row][col] = 1;
-        };
-      };
+        }
+      }
 
       const state: PuzzleState = {
         board,
@@ -293,6 +299,47 @@ describe("Board Operations", () => {
       expect(() => {
         canPlacePiece(board, getPiece(1), 4, false, [1, 1]);
       }).toThrowError();
+    });
+  });
+
+  describe("solve", () => {
+    test("should yield at least one valid, complete solution", () => {
+      const initialState: PuzzleState = {
+        board: createEmptyBoard(),
+        remainingPieces: new Set(range(1, 13)), // All 12 pieces
+      };
+
+      const solutions = solve(initialState);
+      const firstSolution = solutions.next();
+
+      // Should find at least one solution
+      expect(firstSolution.value).toBeDefined();
+
+      const solution = firstSolution.value;
+
+      // Solution should have no remaining pieces
+      expect(solution.remainingPieces.size).toBe(0);
+
+      // Solution board should be completely filled (no empty spaces)
+      for (let row = 0; row < 5; row++) {
+        for (let col = 0; col < 11; col++) {
+          expect(solution.board[row][col]).toBeGreaterThan(0);
+        }
+      }
+
+      // Board should only contain valid piece IDs (1-12)
+      const usedPieces = new Set<number>();
+      for (let row = 0; row < 5; row++) {
+        for (let col = 0; col < 11; col++) {
+          const pieceId = solution.board[row][col];
+          expect(pieceId).toBeGreaterThanOrEqual(1);
+          expect(pieceId).toBeLessThanOrEqual(12);
+          usedPieces.add(pieceId);
+        }
+      }
+
+      // Should use all 12 pieces
+      expect(usedPieces.size).toBe(12);
     });
   });
 });
