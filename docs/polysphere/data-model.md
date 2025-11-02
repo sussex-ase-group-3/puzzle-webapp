@@ -82,7 +82,7 @@ function placePiece(
   position: Position,
 ): PuzzleState;
 
-function canPlacePiece(board: Board, piece: Piece, position: Position): boolean;
+function canPlacePiece(board: Board, piece: Piece, rotations: number, flipped: boolean, position: Position): boolean;
 
 function isComplete(state: PuzzleState): boolean;
 
