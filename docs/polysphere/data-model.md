@@ -86,7 +86,7 @@ function canPlacePiece(board: Board, piece: Piece, rotations: number, flipped: b
 
 function isComplete(state: PuzzleState): boolean;
 
-function selectNextPiece(state: PuzzleState): number; // largest piece by bounding box area
+function selectNextPiece(remainingPieces: Set<number>): number; // largest piece by bounding box area
 
 function* solve(state: PuzzleState): Generator<PuzzleState>; // yield solutions
 ```
