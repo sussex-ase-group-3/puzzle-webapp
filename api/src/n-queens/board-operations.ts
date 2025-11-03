@@ -39,24 +39,12 @@ export function placeQueen(
  * @returns {boolean} A boolean value true for safe otherwise false.
  */
 export function isSafe(boardState: BoardState, newPosition: Position): boolean {
-  const newPositionRow = newPosition[0];
-  const newPositionCol = newPosition[1];
-  let isSafeSpace = true;
-
-  boardState.forEach((currentColumn, currentRow) => {
-    if (currentColumn !== -1) {
-      const columnDifference = Math.abs(currentColumn - newPositionCol);
-      const rowDifference = Math.abs(currentRow - newPositionRow);
-
-      if (columnDifference === rowDifference) {
-        isSafeSpace = false;
-      }
-      if (currentColumn === newPositionCol) {
-        isSafeSpace = false;
-      }
-    }
+  return boardState.every((row, col) => {
+    return !(row !== -1 && (
+      Math.abs(row - newPosition[1]) === Math.abs(col - newPosition[0]) ||
+      row === newPosition[1]
+    ))
   });
-  return isSafeSpace;
 }
 
 /**
