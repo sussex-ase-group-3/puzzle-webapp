@@ -43,6 +43,6 @@ export function isComplete(state: PuzzleState): boolean {
 
   if (state.remainingPieces.size === 0 && !hasZero) {
     return true;
-  }
+  };
   return false;
 };
