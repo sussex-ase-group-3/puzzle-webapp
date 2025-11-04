@@ -17,6 +17,8 @@
   },
   "devDependencies": {
     "@types/lodash": "^4.17.20",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
     "concurrently": "^8.2.2"
   },
   "dependencies": {
