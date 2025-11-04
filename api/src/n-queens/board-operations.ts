@@ -40,9 +40,9 @@ export function placeQueen(
  */
 export function isSafe(boardState: BoardState, newPosition: Position): boolean {
   return boardState.every((row, col) => {
-    return !(row !== -1 && (
-      Math.abs(row - newPosition[1]) === Math.abs(col - newPosition[0]) ||
-      row === newPosition[1]
+    return (row === -1 || (
+      row !== newPosition[1] &&
+      Math.abs(row - newPosition[1]) !== Math.abs(col - newPosition[0])
     ))
   });
 }
