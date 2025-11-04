@@ -7,21 +7,15 @@ import { getPieceBoundingBoxArea } from "./pieces.js";
  * @throws Error if no pieces remain
  */
 export function selectNextPiece(remainingPieces: Set<number>): number {
-  //throw error if no remaining pieces:
-  let id = 0;
-  let boundingSize = 0
-
   if(remainingPieces.size === 0) {
-    throw new Error("no pieces remain") 
+     throw new Error("no pieces remain"); 
   } 
 
-  for (const num of remainingPieces) {
-      let piece = getPiece(num);
-      let boundingSizePlaceHolder = getPieceBoundingBoxArea(piece);
-      if(boundingSizePlaceHolder > boundingSize) {
-        id = num;
-        boundingSize = boundingSizePlaceHolder;
-      }
-  }
-  return id;  
+  const largestShapeId = Array.from(remainingPieces).reduce((largestBoundSoFarId, currentShapeId) => {
+      const largestBound = getPieceBoundingBoxArea(getPiece(largestBoundSoFarId));
+      const currentBound = getPieceBoundingBoxArea(getPiece(currentShapeId));
+      return currentBound > largestBound ? currentShapeId : largestBoundSoFarId;
+  });
+
+  return largestShapeId;
 }
