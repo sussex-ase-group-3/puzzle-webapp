@@ -41,8 +41,5 @@ export function isComplete(state: PuzzleState): boolean {
   const board = state.board;
   const hasZero = board.some(row => row.some(col => col === 0));
 
-  if (state.remainingPieces.size === 0 && !hasZero) {
-    return true;
-  };
-  return false;
+  return state.remainingPieces.size === 0 && !hasZero;
 };
