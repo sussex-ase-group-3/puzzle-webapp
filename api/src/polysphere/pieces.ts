@@ -82,6 +82,47 @@ export const PIECE_SHAPES: PieceShape[] = [
   ],
 ];
 
+export const PIECE_COLOURS = [
+  // Index 0 - empty placeholder
+  "",
+
+  // Piece 1
+  "#e51e0f",
+
+  // Piece 2
+  "#f669a8",
+
+  // Piece 3
+  "#f8b7d7",
+
+  // Piece 4
+  "#1c8ed2",
+
+  // Piece 5
+  "#faed5b",
+
+  // Piece 6
+  "#b165a8",
+
+  // Piece 7
+  "#713d96",
+
+  // Piece 8
+  "#63ad68",
+
+  // Piece 9
+  "#ea6a22",
+
+  // Piece 10
+  "#129338",
+
+  // Piece 11
+  "#fed04e",
+
+  // Piece 12
+  "#8bcaf1"
+]
+
 /**
  * Get a piece by its ID
  */
@@ -92,6 +133,7 @@ export function getPiece(id: number): Piece {
   return {
     id,
     shape: PIECE_SHAPES[id],
+    colour: PIECE_COLOURS[id]
   };
 }
 
