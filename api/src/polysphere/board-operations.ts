@@ -11,7 +11,7 @@ const { cloneDeep, size } = lodash;
 export function selectNextPiece(remainingPieces: Set<number>): number {
   if (remainingPieces.size === 0) {
     throw new Error("no pieces remain");
-  }
+  };
 
   const largestShapeId = Array.from(remainingPieces).reduce((largestBoundSoFarId, currentShapeId) => {
     const largestBound = getPieceBoundingBoxArea(getPiece(largestBoundSoFarId));
@@ -30,25 +30,26 @@ export function createEmptyBoard(): Board {
   return Array(5)
     .fill(null)
     .map(() => Array(11).fill(0));
-}
+};
 
-//rotate a piece 90d clockwise
-function rotateMatrix(matrix: boolean[][]): boolean[][] {
-  const rows = matrix.length;
-  const cols = matrix[0].length;
-  const rotated: boolean[][] = Array.from({ length: cols }, () => Array(rows).fill(false));
+export function rotateClockwise(shape: boolean[][]): boolean[][] {
+  const rows = size(shape);
+  const cols = size(shape[0]);
+  const newShape = Array.from({ length: cols }, () => Array(rows).fill(false));
+
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
-      rotated[c][rows - 1 - r] = matrix[r][c];
-    }
-  }
-  return rotated;
-}
+      newShape[c][rows - 1 - r] = shape[r][c];
+    };
+  };
+
+  return newShape;
+};
 
 //flip a piece horizontally
-function flipMatrix(matrix: boolean[][]): boolean[][] {
-  return matrix.map(row => [...row].reverse());
-}
+function flipHorizontal(shape: boolean[][]): boolean[][] {
+  return shape.map(row => [...row].reverse());
+};
 
 export function placePiece(
   state: PuzzleState,
@@ -63,21 +64,21 @@ export function placePiece(
   //Validate piece availability
   if (!state.remainingPieces.has(pieceId)) {
     throw new Error(`Piece ${pieceId} no remaining pieces`);
-  }
+  };
 
   //Validate rotation value
   if (!Number.isInteger(rotations) || rotations < 0 || rotations > 3) {
     throw new Error(`Invalid rotation value: ${rotations}`);
-  }
+  };
 
   for (let i = 0; i < rotations; i++) {
-    shape = rotateMatrix(shape);
-  }
+    shape = rotateClockwise(shape);
+  };
 
   //if needed horizontal flip
   if (flipped) {
-    shape = flipMatrix(shape);
-  }
+    shape = flipHorizontal(shape);
+  };
 
   const [startRow, startCol] = position;
   const newBoard = state.board.map(row => [...row]); //rows are duplicated
@@ -97,22 +98,22 @@ export function placePiece(
         boardCol >= newBoard[0].length
       ) {
         throw new Error("Piece placement out of bounds");
-      }
+      };
 
       if (newBoard[boardRow][boardCol] !== 0) {
         throw new Error("Cannot place piece on occupied cell");
-      }
-    }
-  }
+      };
+    };
+  };
 
   //Place piece
   for (let r = 0; r < shape.length; r++) {
     for (let c = 0; c < shape[0].length; c++) {
       if (shape[r][c]) {
         newBoard[startRow + r][startCol + c] = pieceId;
-      }
-    }
-  }
+      };
+    };
+  };
 
   const newRemaining = new Set(state.remainingPieces);
   newRemaining.delete(pieceId);
@@ -121,35 +122,8 @@ export function placePiece(
     board: newBoard,
     remainingPieces: newRemaining,
   };
-}
+};
 
-export function flipHorizontal(shape: boolean[][]): boolean[][] {
-  const rows = size(shape);
-  const cols = size(shape[0]);
-  const newShape = Array.from({ length: cols }, () => Array(rows).fill(false));
-
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      newShape[r][rows - 1 - c] = shape[r][c];
-    }
-  }
-
-  return newShape
-}
-
-export function rotateClockwise(shape: boolean[][]): boolean[][] {
-  const rows = size(shape);
-  const cols = size(shape[0]);
-  const newShape = Array.from({ length: cols }, () => Array(rows).fill(false));
-
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      newShape[c][rows - 1 - r] = shape[r][c];
-    }
-  }
-
-  return newShape;
-}
 
 /**
  * Check if the puzzle is complete (all pieces have been placed and all board spaces occupied)
@@ -208,7 +182,7 @@ export function canPlacePiece(
           currentColumnPosition < 0
         ) {
           return false;
-        }
+        };
         if (board[currentRowPosition][currentColumnPosition] !== 0) {
           return false;
         };
