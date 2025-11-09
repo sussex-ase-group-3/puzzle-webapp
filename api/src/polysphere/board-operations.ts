@@ -128,6 +128,7 @@ export function placePiece(
       }
     }
   }
+
   const newRemaining = new Set(state.remainingPieces);
   newRemaining.delete(pieceId);
 
