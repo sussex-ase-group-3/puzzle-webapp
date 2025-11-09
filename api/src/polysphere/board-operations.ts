@@ -1,6 +1,8 @@
 import { getPiece } from "./pieces.js"
-import { Board, PuzzleState } from "./types.js";
+import { Board, PuzzleState, Piece, Position } from "./types.js";
 import { getPieceBoundingBoxArea } from "./pieces.js";
+import lodash from "lodash";
+const { cloneDeep, size } = lodash;
 
 /**
  * Select the next piece to place using largest-by-bounding-box heuristic
@@ -9,14 +11,14 @@ import { getPieceBoundingBoxArea } from "./pieces.js";
  * @throws Error if no pieces remain
  */
 export function selectNextPiece(remainingPieces: Set<number>): number {
-  if(remainingPieces.size === 0) {
-     throw new Error("no pieces remain");
+  if (remainingPieces.size === 0) {
+    throw new Error("no pieces remain");
   }
 
   const largestShapeId = Array.from(remainingPieces).reduce((largestBoundSoFarId, currentShapeId) => {
-      const largestBound = getPieceBoundingBoxArea(getPiece(largestBoundSoFarId));
-      const currentBound = getPieceBoundingBoxArea(getPiece(currentShapeId));
-      return currentBound > largestBound ? currentShapeId : largestBoundSoFarId;
+    const largestBound = getPieceBoundingBoxArea(getPiece(largestBoundSoFarId));
+    const currentBound = getPieceBoundingBoxArea(getPiece(currentShapeId));
+    return currentBound > largestBound ? currentShapeId : largestBoundSoFarId;
   });
 
   return largestShapeId;
@@ -32,6 +34,34 @@ export function createEmptyBoard(): Board {
     .map(() => Array(11).fill(0));
 }
 
+export function flipHorizontal(shape: boolean[][]): boolean[][] {
+  const rows = size(shape);
+  const cols = size(shape[0]);
+  const newShape = Array.from({ length: cols }, () => Array(rows).fill(false));
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      newShape[r][rows - 1 - c] = shape[r][c];
+    }
+  }
+
+  return newShape
+}
+
+export function rotateClockwise(shape: boolean[][]): boolean[][] {
+  const rows = size(shape);
+  const cols = size(shape[0]);
+  const newShape = Array.from({ length: cols }, () => Array(rows).fill(false));
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      newShape[c][rows - 1 - r] = shape[r][c];
+    }
+  }
+
+  return newShape;
+}
+
 /**
  * Check if the puzzle is complete (all pieces have been placed and all board spaces occupied)
  * @param state Current puzzle state
@@ -42,4 +72,59 @@ export function isComplete(state: PuzzleState): boolean {
   const hasZero = board.some(row => row.some(col => col === 0));
 
   return state.remainingPieces.size === 0 && !hasZero;
+};
+
+/**
+ * Check if a piece can be placed at the specified position on the board
+ * @param board Current board state
+ * @param piece The piece to place
+ * @param rotations Number of 90-degree clockwise rotations (0-3)
+ * @param flipped Whether the piece should be horizontally flipped
+ * @param position Position to place the piece at
+ * @returns true if the piece can be placed, false otherwise
+ */
+export function canPlacePiece(
+  board: Board,
+  piece: Piece,
+  rotations: number,
+  flipped: boolean,
+  position: Position,
+): boolean {
+
+  //copy just shape
+  let shape = cloneDeep(piece.shape);
+  //apply horizontal flip
+  if (flipped) {
+    shape = flipHorizontal(shape);
+  };
+  //apply rotations
+  if (rotations < 0 || rotations > 3) {
+    throw new Error("Rotations request is out of bound")
+  };
+  for (let i = 0; i < rotations; i++) {
+    shape = rotateClockwise(shape);
+  };
+
+  //check if piece fits on the board
+  for (let row = 0; row < shape.length; row++) {
+    for (let col = 0; col < shape[0].length; col++) {
+
+      if (shape[row][col] === true) {
+        const currentRowPosition = position[0] + row;
+        const currentColumnPosition = position[1] + col;
+
+        if (currentRowPosition >= board.length ||
+          currentRowPosition < 0 ||
+          currentColumnPosition >= board[0].length ||
+          currentColumnPosition < 0
+        ) {
+          return false;
+        }
+        if (board[currentRowPosition][currentColumnPosition] !== 0) {
+          return false;
+        };
+      };
+    };
+  };
+  return true;
 };
