@@ -31,6 +31,23 @@ export function createEmptyBoard(): Board {
     .fill(null)
     .map(() => Array(11).fill(0));
 }
+//rotate a piece 90d clockwise
+function rotateMatrix(matrix: boolean[][]): boolean[][] {
+  const rows = matrix.length;
+  const cols = matrix[0].length;
+  const rotated: boolean[][] = Array.from({ length: cols }, () => Array(rows).fill(false));
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      rotated[c][rows - 1 - r] = matrix[r][c];
+    }
+  }
+  return rotated;
+}
+//flip a piece horizontally
+function flipMatrix(matrix: boolean[][]): boolean[][] {
+  return matrix.map(row => [...row].reverse());
+}
+
 
 export function placePiece(
   state: PuzzleState,
@@ -39,7 +56,60 @@ export function placePiece(
   flipped: boolean,
   position: Position,
 ): PuzzleState {
-  throw new Error("placePiece not implemented");
+  const piece = getPiece(pieceId);
+  let shape = piece.shape;
+
+  //rotations(% 4 rotations)
+  for (let i = 0; i < rotations % 4; i++) {
+    shape = rotateMatrix(shape);
+  }
+
+  //if needed horizontal flip
+  if (flipped) {
+    shape = flipMatrix(shape);
+  }
+
+  const [startRow, startCol] = position;
+  const newBoard = state.board.map(row => [...row]); // deep copy
+
+  //Validate placement
+  for (let r = 0; r < shape.length; r++) {
+    for (let c = 0; c < shape[0].length; c++) {
+      if (!shape[r][c]) continue;
+
+      const boardRow = startRow + r;
+      const boardCol = startCol + c;
+
+      if (
+        boardRow < 0 ||
+        boardCol < 0 ||
+        boardRow >= newBoard.length ||
+        boardCol >= newBoard[0].length
+      ) {
+        throw new Error("Piece placement out of bounds");
+      }
+
+      if (newBoard[boardRow][boardCol] !== 0) {
+        throw new Error("Cannot place piece on occupied cell");
+      }
+    }
+  }
+
+  //Place piece
+  for (let r = 0; r < shape.length; r++) {
+    for (let c = 0; c < shape[0].length; c++) {
+      if (shape[r][c]) {
+        newBoard[startRow + r][startCol + c] = pieceId;
+      }
+    }
+  }
+  const newRemaining = new Set(state.remainingPieces);
+  newRemaining.delete(pieceId);
+
+  return {
+    board: newBoard,
+    remainingPieces: newRemaining,
+  };
 }
 
 export function flipHorizontal(shape: boolean[][]): boolean[][] {
