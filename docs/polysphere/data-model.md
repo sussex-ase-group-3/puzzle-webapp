@@ -77,15 +77,16 @@ type PuzzleState = {
 function placePiece(
   state: PuzzleState,
   pieceId: number,
-  orientation: number,
+  rotations: number,
+  flipped: boolean,
   position: Position,
 ): PuzzleState;
 
-function canPlacePiece(board: Board, piece: Piece, position: Position): boolean;
+function canPlacePiece(board: Board, piece: Piece, rotations: number, flipped: boolean, position: Position): boolean;
 
 function isComplete(state: PuzzleState): boolean;
 
-function selectNextPiece(state: PuzzleState): number; // largest piece by bounding box area
+function selectNextPiece(remainingPieces: Set<number>): number; // largest piece by bounding box area
 
 function* solve(state: PuzzleState): Generator<PuzzleState>; // yield solutions
 ```
@@ -127,3 +128,21 @@ yield\* solve(place piece) // yield all solutions from this branch
 ```
 
 We could probably even reuse the solve function from n-queens with minimal modifications, just changing it to a generator function to handle the large solution space efficiently.
+
+## List of Pieces
+
+0-9
+
+```
+         _3_                  88 999
+111 __22 33_ _4_ _5__ _66 _77 8_ __9
+1_1 222_ _33 444 5555 666 77_ 8_ __9
+```
+
+10-12
+
+```
+        22_
+0___ 1_ _22
+0000 11 __2
+```
