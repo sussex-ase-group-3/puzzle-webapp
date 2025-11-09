@@ -55,7 +55,7 @@ describe("Board Operations", () => {
           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         ],
-        remainingPieces: new Set([1, 3]),
+        remainingPieces: new Set([1, 2, 3]),
       };
 
       expect(result).toEqual(expectedState);
