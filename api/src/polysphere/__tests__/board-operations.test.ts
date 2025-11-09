@@ -37,8 +37,8 @@ describe("Board Operations", () => {
       for (let row = 0; row < 5; row++) {
         for (let col = 0; col < 11; col++) {
           board[row][col] = 1; // Any non-zero piece ID
-        }
-      }
+        };
+      };
 
       const state: PuzzleState = {
         board,
@@ -63,8 +63,8 @@ describe("Board Operations", () => {
       for (let row = 0; row < 5; row++) {
         for (let col = 0; col < 11; col++) {
           board[row][col] = 1;
-        }
-      }
+        };
+      };
 
       const state: PuzzleState = {
         board,

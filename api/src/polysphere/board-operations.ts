@@ -11,14 +11,14 @@ const { cloneDeep, size } = lodash;
  * @throws Error if no pieces remain
  */
 export function selectNextPiece(remainingPieces: Set<number>): number {
-  if(remainingPieces.size === 0) {
-     throw new Error("no pieces remain");
+  if (remainingPieces.size === 0) {
+    throw new Error("no pieces remain");
   }
 
   const largestShapeId = Array.from(remainingPieces).reduce((largestBoundSoFarId, currentShapeId) => {
-      const largestBound = getPieceBoundingBoxArea(getPiece(largestBoundSoFarId));
-      const currentBound = getPieceBoundingBoxArea(getPiece(currentShapeId));
-      return currentBound > largestBound ? currentShapeId : largestBoundSoFarId;
+    const largestBound = getPieceBoundingBoxArea(getPiece(largestBoundSoFarId));
+    const currentBound = getPieceBoundingBoxArea(getPiece(currentShapeId));
+    return currentBound > largestBound ? currentShapeId : largestBoundSoFarId;
   });
 
   return largestShapeId;
@@ -37,11 +37,11 @@ export function createEmptyBoard(): Board {
 export function flipHorizontal(shape: boolean[][]): boolean[][] {
   const rows = size(shape);
   const cols = size(shape[0]);
-  const newShape = Array.from({length: cols}, () => Array(rows).fill(false));
+  const newShape = Array.from({ length: cols }, () => Array(rows).fill(false));
 
-  for(let r = 0; r < rows; r++) {
-    for(let c = 0; c < cols; c++ ) {
-        newShape[r][rows - 1 - c] = shape[r][c];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      newShape[r][rows - 1 - c] = shape[r][c];
     }
   }
 
@@ -51,11 +51,11 @@ export function flipHorizontal(shape: boolean[][]): boolean[][] {
 export function rotateClockwise(shape: boolean[][]): boolean[][] {
   const rows = size(shape);
   const cols = size(shape[0]);
-  const newShape = Array.from({length: cols}, () => Array(rows).fill(false));
+  const newShape = Array.from({ length: cols }, () => Array(rows).fill(false));
 
-  for(let r = 0; r < rows; r++) {
-    for(let c = 0; c < cols; c++ ) {
-        newShape[c][rows - 1 - r] = shape[r][c];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      newShape[c][rows - 1 - r] = shape[r][c];
     }
   }
 
@@ -96,35 +96,35 @@ export function canPlacePiece(
   //apply horizontal flip
   if (flipped) {
     shape = flipHorizontal(shape);
-  }
+  };
   //apply rotations
-  if(rotations < 0 || rotations > 3) {
+  if (rotations < 0 || rotations > 3) {
     throw new Error("Rotations request is out of bound")
-  }
-  for(let i = 0; i < rotations; i++) {
+  };
+  for (let i = 0; i < rotations; i++) {
     shape = rotateClockwise(shape);
-  }
+  };
 
   //check if piece fits on the board
   for (let row = 0; row < shape.length; row++) {
-      for (let col = 0; col < shape[0].length; col++) {
+    for (let col = 0; col < shape[0].length; col++) {
 
-        if (shape[row][col] === true) {
-          const currentRowPosition = position[0] + row;
-          const currentColumnPosition = position[1] + col;
+      if (shape[row][col] === true) {
+        const currentRowPosition = position[0] + row;
+        const currentColumnPosition = position[1] + col;
 
-          if (currentRowPosition >= board.length ||
-              currentRowPosition < 0 ||
-              currentColumnPosition >= board[0].length ||
-              currentColumnPosition < 0
-            ) {
-              return false;
-          }
-          if (board[currentRowPosition][currentColumnPosition] !== 0) {
-             return false;
-          }
+        if (currentRowPosition >= board.length ||
+          currentRowPosition < 0 ||
+          currentColumnPosition >= board[0].length ||
+          currentColumnPosition < 0
+        ) {
+          return false;
         }
-      }
-  }
+        if (board[currentRowPosition][currentColumnPosition] !== 0) {
+          return false;
+        };
+      };
+    };
+  };
   return true;
-}
+};
