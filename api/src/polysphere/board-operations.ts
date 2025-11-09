@@ -31,6 +31,7 @@ export function createEmptyBoard(): Board {
     .fill(null)
     .map(() => Array(11).fill(0));
 }
+
 //rotate a piece 90d clockwise
 function rotateMatrix(matrix: boolean[][]): boolean[][] {
   const rows = matrix.length;
@@ -43,11 +44,11 @@ function rotateMatrix(matrix: boolean[][]): boolean[][] {
   }
   return rotated;
 }
+
 //flip a piece horizontally
 function flipMatrix(matrix: boolean[][]): boolean[][] {
   return matrix.map(row => [...row].reverse());
 }
-
 
 export function placePiece(
   state: PuzzleState,
@@ -64,28 +65,12 @@ export function placePiece(
     throw new Error(`Piece ${pieceId} no remaining pieces`);
   }
 
-  //Validate pieceId range
-  if (!Number.isInteger(pieceId) || pieceId < 1 || pieceId > 12) {
-    throw new Error(`Invalid piece ID: ${pieceId}`);
-  }
-
   //Validate rotation value
   if (!Number.isInteger(rotations) || rotations < 0 || rotations > 3) {
     throw new Error(`Invalid rotation value: ${rotations}`);
   }
 
-  //Validate position format
-  if (
-    !Array.isArray(position) ||
-    position.length !== 2 ||
-    typeof position[0] !== "number" ||
-    typeof position[1] !== "number"
-  ) {
-    throw new Error(`Invalid position: ${position}`);
-  }
-
-  //rotations(% 4 rotations)
-  for (let i = 0; i < rotations % 4; i++) {
+  for (let i = 0; i < rotations; i++) {
     shape = rotateMatrix(shape);
   }
 
@@ -95,7 +80,7 @@ export function placePiece(
   }
 
   const [startRow, startCol] = position;
-  const newBoard = state.board.map(row => [...row]); //rows are duplicated 
+  const newBoard = state.board.map(row => [...row]); //rows are duplicated
 
   //Validate placement
   for (let r = 0; r < shape.length; r++) {
