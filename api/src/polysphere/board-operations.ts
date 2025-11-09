@@ -59,6 +59,31 @@ export function placePiece(
   const piece = getPiece(pieceId);
   let shape = piece.shape;
 
+  //Validate piece availability
+  if (!state.remainingPieces.has(pieceId)) {
+    throw new Error(`Piece ${pieceId} no remaining pieces`);
+  }
+
+  //Validate pieceId range
+  if (!Number.isInteger(pieceId) || pieceId < 1 || pieceId > 12) {
+    throw new Error(`Invalid piece ID: ${pieceId}`);
+  }
+
+  //Validate rotation value
+  if (!Number.isInteger(rotations) || rotations < 0 || rotations > 3) {
+    throw new Error(`Invalid rotation value: ${rotations}`);
+  }
+
+  //Validate position format
+  if (
+    !Array.isArray(position) ||
+    position.length !== 2 ||
+    typeof position[0] !== "number" ||
+    typeof position[1] !== "number"
+  ) {
+    throw new Error(`Invalid position: ${position}`);
+  }
+
   //rotations(% 4 rotations)
   for (let i = 0; i < rotations % 4; i++) {
     shape = rotateMatrix(shape);
@@ -70,7 +95,7 @@ export function placePiece(
   }
 
   const [startRow, startCol] = position;
-  const newBoard = state.board.map(row => [...row]); // deep copy
+  const newBoard = state.board.map(row => [...row]); //rows are duplicated 
 
   //Validate placement
   for (let r = 0; r < shape.length; r++) {
