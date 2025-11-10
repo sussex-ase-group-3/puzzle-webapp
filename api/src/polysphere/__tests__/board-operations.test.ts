@@ -7,7 +7,6 @@ import {
   placePiece,
   rotateClockwise,
   flipHorizontal,
-  applyRotations,
 } from "../board-operations.js";
 import { PuzzleState, Position } from "../types.js";
 import { getPiece } from "../pieces.js";
