@@ -1,9 +1,22 @@
 import express from "express";
 import { solve, resetVisitedSet } from "./n-queens/solver.js";
 import { BoardState } from "./n-queens/types.js";
+import {
+  solve as polysphere_solve,
+  createEmptyBoard,
+} from "./polysphere/board-operations.js";
+import { PuzzleState } from "./polysphere/types.js";
+import { range } from "./utils.js";
 
 const app = express();
 const PORT = Number(process.env.PORT ?? 3000);
+
+// Store single active generator
+let activeGenerator: {
+  generator: Generator<PuzzleState>;
+  maxSolutions: number;
+  foundSolutions: number;
+} | null = null;
 
 // Middleware
 app.use(express.json());
@@ -14,7 +27,7 @@ app.get("/", (req, res) => {
 });
 
 // N-Queens solver route
-app.post("/solver", (req, res) => {
+app.post("/n-queens/solver", (req, res) => {
   try {
     console.log("Received request:", req.body);
     const { n, board } = req.body;
@@ -82,6 +95,192 @@ app.post("/solver", (req, res) => {
       details: error instanceof Error ? error.message : "Unknown error",
     });
   }
+});
+
+// Create polysphere solver
+app.post("/polysphere/solver", (req, res) => {
+  try {
+    const { board, remainingPieces, maxSolutions = 10 } = req.body;
+
+    let initialState: PuzzleState;
+
+    if (!board && !remainingPieces) {
+      // No input provided - assume empty board with all pieces available
+      initialState = {
+        board: createEmptyBoard(),
+        remainingPieces: new Set(range(1, 13)), // All 12 pieces
+      };
+    } else {
+      // Use provided PuzzleState
+      initialState = {
+        board: board,
+        remainingPieces: new Set(remainingPieces),
+      };
+    }
+
+    // Create generator and store it (replaces any existing one)
+    const generator = polysphere_solve(initialState);
+    activeGenerator = {
+      generator,
+      maxSolutions,
+      foundSolutions: 0,
+    };
+
+    res.json({
+      success: true,
+      maxSolutions,
+    });
+  } catch (error) {
+    console.error("Polysphere solver error:", error);
+    res.status(500).json({
+      error: "Internal server error while creating Polysphere solver",
+      details: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
+// Get next solutions from polysphere solver
+app.get("/polysphere/solver/next", (req, res) => {
+  try {
+    const { count = 1 } = req.query;
+    const requestedCount = parseInt(count as string) || 1;
+
+    if (!activeGenerator) {
+      return res.status(404).json({
+        error: "No active solver. Start one with POST /polysphere/solver",
+      });
+    }
+
+    const solutions: PuzzleState[] = [];
+    let isComplete = false;
+
+    for (
+      let i = 0;
+      i < requestedCount &&
+      activeGenerator.foundSolutions < activeGenerator.maxSolutions;
+      i++
+    ) {
+      const result = activeGenerator.generator.next();
+      if (result.done) {
+        isComplete = true;
+        break;
+      }
+      solutions.push(result.value);
+      activeGenerator.foundSolutions++;
+    }
+
+    // Clean up if complete or max reached
+    if (
+      isComplete ||
+      activeGenerator.foundSolutions >= activeGenerator.maxSolutions
+    ) {
+      activeGenerator = null;
+    }
+
+    res.json({
+      solutions,
+      isComplete,
+      foundSolutions: activeGenerator?.foundSolutions || 0,
+      maxSolutions: activeGenerator?.maxSolutions || 0,
+    });
+  } catch (error) {
+    console.error("Polysphere next solutions error:", error);
+    res.status(500).json({
+      error: "Internal server error while getting next solutions",
+      details: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
+// Stream solutions at regular intervals using Server-Sent Events
+app.get("/polysphere/solver/stream", (req, res) => {
+  const { interval = 500 } = req.query;
+  const intervalMs = parseInt(interval as string) || 500;
+
+  if (!activeGenerator) {
+    return res.status(404).json({
+      error: "No active solver. Start one with POST /polysphere/solver",
+    });
+  }
+
+  // Set up SSE headers
+  res.writeHead(200, {
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache",
+    Connection: "keep-alive",
+    "Access-Control-Allow-Origin": "*",
+  });
+
+  let streamInterval: NodeJS.Timeout;
+
+  const sendSolution = () => {
+    if (!activeGenerator) {
+      res.write("event: complete\n");
+      res.write('data: {"message": "Solver completed or cancelled"}\n\n');
+      clearInterval(streamInterval);
+      res.end();
+      return;
+    }
+
+    try {
+      const result = activeGenerator.generator.next();
+
+      if (result.done) {
+        activeGenerator = null;
+        res.write("event: complete\n");
+        res.write('data: {"message": "All solutions found"}\n\n');
+        clearInterval(streamInterval);
+        res.end();
+        return;
+      }
+
+      activeGenerator.foundSolutions++;
+
+      const data = {
+        solution: result.value,
+        foundSolutions: activeGenerator.foundSolutions,
+        maxSolutions: activeGenerator.maxSolutions,
+      };
+
+      res.write("event: solution\n");
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+
+      // Check if we've reached max solutions
+      if (activeGenerator.foundSolutions >= activeGenerator.maxSolutions) {
+        activeGenerator = null;
+        res.write("event: complete\n");
+        res.write('data: {"message": "Maximum solutions reached"}\n\n');
+        clearInterval(streamInterval);
+        res.end();
+      }
+    } catch (error) {
+      res.write("event: error\n");
+      res.write(
+        `data: ${JSON.stringify({ error: "Error generating solution" })}\n\n`,
+      );
+      clearInterval(streamInterval);
+      res.end();
+    }
+  };
+
+  // Start streaming
+  streamInterval = setInterval(sendSolution, intervalMs);
+
+  // Clean up on client disconnect
+  req.on("close", () => {
+    clearInterval(streamInterval);
+  });
+});
+
+// Cancel polysphere solver
+app.delete("/polysphere/solver", (req, res) => {
+  const wasActive = activeGenerator !== null;
+  activeGenerator = null;
+
+  res.json({
+    success: wasActive,
+    message: wasActive ? "Solver cancelled" : "No active solver",
+  });
 });
 
 app.listen(PORT, "0.0.0.0", () => {
