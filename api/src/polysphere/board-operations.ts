@@ -1,4 +1,4 @@
-import { getPiece } from "./pieces.js"
+import { getPiece } from "./pieces.js";
 import { Board, PuzzleState, Piece, Position } from "./types.js";
 import { getPieceBoundingBoxArea } from "./pieces.js";
 import lodash from "lodash";
@@ -11,16 +11,20 @@ const { cloneDeep, size } = lodash;
 export function selectNextPiece(remainingPieces: Set<number>): number {
   if (remainingPieces.size === 0) {
     throw new Error("no pieces remain");
-  };
+  }
 
-  const largestShapeId = Array.from(remainingPieces).reduce((largestBoundSoFarId, currentShapeId) => {
-    const largestBound = getPieceBoundingBoxArea(getPiece(largestBoundSoFarId));
-    const currentBound = getPieceBoundingBoxArea(getPiece(currentShapeId));
-    return currentBound > largestBound ? currentShapeId : largestBoundSoFarId;
-  });
+  const largestShapeId = Array.from(remainingPieces).reduce(
+    (largestBoundSoFarId, currentShapeId) => {
+      const largestBound = getPieceBoundingBoxArea(
+        getPiece(largestBoundSoFarId),
+      );
+      const currentBound = getPieceBoundingBoxArea(getPiece(currentShapeId));
+      return currentBound > largestBound ? currentShapeId : largestBoundSoFarId;
+    },
+  );
 
   return largestShapeId;
-};
+}
 
 /**
  * Creates an empty 5x11 board filled with zeros
@@ -30,7 +34,7 @@ export function createEmptyBoard(): Board {
   return Array(5)
     .fill(null)
     .map(() => Array(11).fill(0));
-};
+}
 
 export function rotateClockwise(shape: boolean[][]): boolean[][] {
   const rows = size(shape);
@@ -40,90 +44,74 @@ export function rotateClockwise(shape: boolean[][]): boolean[][] {
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       newShape[c][rows - 1 - r] = shape[r][c];
-    };
-  };
+    }
+  }
 
   return newShape;
-};
+}
 
 //flip a piece horizontally
-function flipHorizontal(shape: boolean[][]): boolean[][] {
-  return shape.map(row => [...row].reverse());
-};
+export function flipHorizontal(shape: boolean[][]): boolean[][] {
+  return shape.map((row) => [...row].reverse());
+}
+
+/**
+ * Generate all unique orientations (rotations and reflections) of a piece
+ * @param piece The piece to generate orientations for
+ * @returns Array of all unique shapes (boolean matrices)
+ */
+function generateOrientations(piece: Piece): boolean[][][] {
+  const uniqueShapes: boolean[][][] = [];
+  const seen = new Set<string>();
+
+  for (let flipped = 0; flipped < 2; flipped++) {
+    for (let rotations = 0; rotations < 4; rotations++) {
+      // Generate the shape for this orientation
+      let shape = cloneDeep(piece.shape);
+
+      if (flipped === 1) {
+        shape = flipHorizontal(shape);
+      }
+
+      for (let i = 0; i < rotations; i++) {
+        shape = rotateClockwise(shape);
+      }
+
+      // Create a string representation to check for duplicates
+      const shapeStr = shape
+        .map((row) => row.map((cell) => (cell ? "1" : "0")).join(""))
+        .join("|");
+
+      if (!seen.has(shapeStr)) {
+        seen.add(shapeStr);
+        uniqueShapes.push(shape);
+      }
+    }
+  }
+
+  return uniqueShapes;
+}
 
 export function placePiece(
-  state: PuzzleState,
+  board: Board,
   pieceId: number,
-  rotations: number,
-  flipped: boolean,
+  shape: boolean[][],
   position: Position,
-): PuzzleState {
-  const piece = getPiece(pieceId);
-  let shape = piece.shape;
-
-  //Validate piece availability
-  if (!state.remainingPieces.has(pieceId)) {
-    throw new Error(`Piece ${pieceId} no remaining pieces`);
-  };
-
-  //Validate rotation value
-  if (!Number.isInteger(rotations) || rotations < 0 || rotations > 3) {
-    throw new Error(`Invalid rotation value: ${rotations}`);
-  };
-
-  for (let i = 0; i < rotations; i++) {
-    shape = rotateClockwise(shape);
-  };
-
-  //if needed horizontal flip
-  if (flipped) {
-    shape = flipHorizontal(shape);
-  };
-
+): Board {
   const [startRow, startCol] = position;
-  const newBoard = state.board.map(row => [...row]); //rows are duplicated
+  const newBoard = board.map((row) => [...row]);
 
-  //Validate placement
-  for (let r = 0; r < shape.length; r++) {
-    for (let c = 0; c < shape[0].length; c++) {
-      if (!shape[r][c]) continue;
-
-      const boardRow = startRow + r;
-      const boardCol = startCol + c;
-
-      if (
-        boardRow < 0 ||
-        boardCol < 0 ||
-        boardRow >= newBoard.length ||
-        boardCol >= newBoard[0].length
-      ) {
-        throw new Error("Piece placement out of bounds");
-      };
-
-      if (newBoard[boardRow][boardCol] !== 0) {
-        throw new Error("Cannot place piece on occupied cell");
-      };
-    };
-  };
-
-  //Place piece
+  // Place the shape
   for (let r = 0; r < shape.length; r++) {
     for (let c = 0; c < shape[0].length; c++) {
       if (shape[r][c]) {
         newBoard[startRow + r][startCol + c] = pieceId;
-      };
-    };
-  };
+      }
+    }
+  }
 
-  const newRemaining = new Set(state.remainingPieces);
-  newRemaining.delete(pieceId);
-
-  return {
-    board: newBoard,
-    remainingPieces: newRemaining,
-  };
-};
-
+  return newBoard;
+}
 
 /**
  * Check if the puzzle is complete (all pieces have been placed and all board spaces occupied)
@@ -132,62 +120,107 @@ export function placePiece(
  */
 export function isComplete(state: PuzzleState): boolean {
   const board = state.board;
-  const hasZero = board.some(row => row.some(col => col === 0));
+  const hasZero = board.some((row) => row.some((col) => col === 0));
 
   return state.remainingPieces.size === 0 && !hasZero;
-};
+}
 
 /**
  * Check if a piece can be placed at the specified position on the board
  * @param board Current board state
- * @param piece The piece to place
- * @param rotations Number of 90-degree clockwise rotations (0-3)
- * @param flipped Whether the piece should be horizontally flipped
- * @param position Position to place the piece at
- * @returns true if the piece can be placed, false otherwise
+ * @param shape The shape to place (boolean matrix)
+ * @param position Position to place the shape at [row, col]
+ * @returns true if the shape can be placed without conflicts, false otherwise
  */
 export function canPlacePiece(
   board: Board,
-  piece: Piece,
-  rotations: number,
-  flipped: boolean,
+  shape: boolean[][],
   position: Position,
 ): boolean {
+  const [startRow, startCol] = position;
 
-  //copy just shape
-  let shape = cloneDeep(piece.shape);
-  //apply horizontal flip
-  if (flipped) {
-    shape = flipHorizontal(shape);
-  };
-  //apply rotations
-  if (rotations < 0 || rotations > 3) {
-    throw new Error("Rotations request is out of bound")
-  };
-  for (let i = 0; i < rotations; i++) {
-    shape = rotateClockwise(shape);
-  };
-
-  //check if piece fits on the board
+  // Check if shape fits on the board
   for (let row = 0; row < shape.length; row++) {
     for (let col = 0; col < shape[0].length; col++) {
+      if (shape[row][col]) {
+        const boardRow = startRow + row;
+        const boardCol = startCol + col;
 
-      if (shape[row][col] === true) {
-        const currentRowPosition = position[0] + row;
-        const currentColumnPosition = position[1] + col;
-
-        if (currentRowPosition >= board.length ||
-          currentRowPosition < 0 ||
-          currentColumnPosition >= board[0].length ||
-          currentColumnPosition < 0
+        if (
+          boardRow < 0 ||
+          boardCol < 0 ||
+          boardRow >= board.length ||
+          boardCol >= board[0].length
         ) {
           return false;
-        };
-        if (board[currentRowPosition][currentColumnPosition] !== 0) {
+        }
+
+        if (board[boardRow][boardCol] !== 0) {
           return false;
-        };
-      };
-    };
-  };
+        }
+      }
+    }
+  }
   return true;
-};
+}
+
+/**
+ * Solve the polysphere puzzle using backtracking
+ * @param state Current puzzle state
+ * @yields Solutions as they are found
+ */
+export function* solve(state: PuzzleState): Generator<PuzzleState> {
+  // Base case: if no pieces remain, check if the puzzle is complete
+  if (state.remainingPieces.size === 0) {
+    if (isComplete(state)) {
+      yield state;
+    }
+    return;
+  }
+
+  // Select the next piece to place (largest by bounding box area)
+  const nextPieceId = selectNextPiece(state.remainingPieces);
+  const piece = getPiece(nextPieceId);
+
+  // Generate all unique orientations for this piece
+  const orientations = generateOrientations(piece);
+
+  // Try placing the piece at every position on the board
+  for (let row = 0; row < state.board.length; row++) {
+    for (let col = 0; col < state.board[0].length; col++) {
+      const position: Position = [row, col];
+
+      // Try all orientations of the piece
+      for (const shape of orientations) {
+        // Check if this shape can be placed at this position
+        if (canPlacePiece(state.board, shape, position)) {
+          try {
+            // Place the piece and get new state
+            const newBoard = placePiece(
+              state.board,
+              nextPieceId,
+              shape,
+              position,
+            );
+            const newRemaining = new Set(state.remainingPieces);
+            newRemaining.delete(nextPieceId);
+
+            const newState = {
+              board: newBoard,
+              remainingPieces: newRemaining,
+            };
+
+            // Recursively solve with the new state
+            yield* solve(newState);
+          } catch (error) {
+            // If placement fails for any reason, continue to next orientation
+            continue;
+          }
+        }
+      }
+    }
+  }
+
+  // If we reach here, no valid placement was found for this piece
+  // The generator will implicitly return (no more solutions from this branch)
+}
