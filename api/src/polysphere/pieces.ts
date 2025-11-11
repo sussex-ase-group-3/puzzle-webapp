@@ -60,6 +60,7 @@ export const PIECE_SHAPES: PieceShape[] = [
   [
     [true, true, true],
     [false, false, true],
+    [false, false, true],
   ],
 
   // Piece 10
@@ -120,8 +121,8 @@ export const PIECE_COLOURS = [
   "#fed04e",
 
   // Piece 12
-  "#8bcaf1"
-]
+  "#8bcaf1",
+];
 
 /**
  * Get a piece by its ID
@@ -133,7 +134,7 @@ export function getPiece(id: number): Piece {
   return {
     id,
     shape: PIECE_SHAPES[id],
-    colour: PIECE_COLOURS[id]
+    colour: PIECE_COLOURS[id],
   };
 }
 

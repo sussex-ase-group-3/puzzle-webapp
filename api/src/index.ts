@@ -4,7 +4,7 @@ import { BoardState } from "./n-queens/types.js";
 import {
   solve as polysphere_solve,
   createEmptyBoard,
-} from "./polysphere/board-operations.js";
+} from "./polysphere-dancing-links/dancing_links_solver.js";
 import { PuzzleState } from "./polysphere/types.js";
 import { range } from "./utils.js";
 
