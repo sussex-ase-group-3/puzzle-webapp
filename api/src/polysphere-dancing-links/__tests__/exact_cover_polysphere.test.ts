@@ -2,6 +2,7 @@ import { describe, test, expect } from "vitest";
 import {
   solveDancingLinks,
   validateSolution,
+  solve,
 } from "../dancing_links_solver.js";
 import { readFileSync } from "fs";
 import { getPiece } from "../../polysphere/pieces.js";
@@ -202,6 +203,91 @@ describe("Dancing Links Exact Cover Solver", () => {
       expect(piece6Count).toBe(5); // Piece 6 has 5 cells
       expect(piece8Count).toBe(4); // Piece 8 has 4 cells
     });
+  });
+
+  test("should complete partial board with piece 10 (4-tall L) placed at position (1,8)", () => {
+    // This test validates that partial board completion works correctly
+    // when piece 10 is pre-placed in the 4-tall L orientation
+
+    // Create partial board with piece 10 placed at position (1, 8)
+    const partialBoard = Array(5)
+      .fill(null)
+      .map(() => Array(11).fill(0));
+
+    // Place piece 10 in its 4-tall L shape (orientation 5) at position (1, 8):
+    partialBoard[1][8] = 10; // First row
+    partialBoard[2][8] = 10; // Second row
+    partialBoard[3][8] = 10; // Third row
+    partialBoard[4][8] = 10; // Fourth row left
+    partialBoard[4][9] = 10; // Fourth row right
+
+    // Remaining pieces (all except piece 10)
+    const remainingPieces = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12]);
+
+    // Test partial board completion
+    const state = {
+      board: partialBoard,
+      remainingPieces: remainingPieces,
+    };
+
+    const solutions = solve(state);
+    let firstSolution;
+
+    // Get first solution
+    for (const solution of solutions) {
+      firstSolution = solution;
+      break;
+    }
+
+    expect(firstSolution).toBeDefined();
+    expect(firstSolution!.remainingPieces.size).toBe(0);
+
+    // Validate the completed board
+    const completedBoard = firstSolution!.board;
+
+    // Check that piece 10 remains in its original position
+    expect(completedBoard[1][8]).toBe(10);
+    expect(completedBoard[2][8]).toBe(10);
+    expect(completedBoard[3][8]).toBe(10);
+    expect(completedBoard[4][8]).toBe(10);
+    expect(completedBoard[4][9]).toBe(10);
+
+    // Validate board is completely filled
+    for (let row = 0; row < 5; row++) {
+      for (let col = 0; col < 11; col++) {
+        expect(completedBoard[row][col]).toBeGreaterThan(0);
+      }
+    }
+
+    // Validate all pieces are used exactly once
+    const usedPieces = new Set<number>();
+    const pieceCounts = Array(13).fill(0); // Index 0 unused, pieces 1-12
+
+    for (let row = 0; row < 5; row++) {
+      for (let col = 0; col < 11; col++) {
+        const pieceId = completedBoard[row][col];
+        expect(pieceId).toBeGreaterThanOrEqual(1);
+        expect(pieceId).toBeLessThanOrEqual(12);
+        usedPieces.add(pieceId);
+        pieceCounts[pieceId]++;
+      }
+    }
+
+    expect(usedPieces.size).toBe(12);
+
+    // Verify each piece is used the correct number of times
+    expect(pieceCounts[1]).toBe(5); // Piece 1 has 5 cells
+    expect(pieceCounts[2]).toBe(5); // Piece 2 has 5 cells
+    expect(pieceCounts[3]).toBe(5); // Piece 3 has 5 cells
+    expect(pieceCounts[4]).toBe(4); // Piece 4 has 4 cells
+    expect(pieceCounts[5]).toBe(5); // Piece 5 has 5 cells
+    expect(pieceCounts[6]).toBe(5); // Piece 6 has 5 cells
+    expect(pieceCounts[7]).toBe(4); // Piece 7 has 4 cells
+    expect(pieceCounts[8]).toBe(4); // Piece 8 has 4 cells
+    expect(pieceCounts[9]).toBe(5); // Piece 9 has 5 cells
+    expect(pieceCounts[10]).toBe(5); // Piece 10 has 5 cells (our pre-placed piece)
+    expect(pieceCounts[11]).toBe(3); // Piece 11 has 3 cells
+    expect(pieceCounts[12]).toBe(5); // Piece 12 has 5 cells
   });
 
   test("should find first solution for full 12-piece puzzle (dancing links)", () => {

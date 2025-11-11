@@ -338,63 +338,171 @@ export function* solve(state: {
   board: number[][];
   remainingPieces: Set<number>;
 }): Generator<{ board: number[][]; remainingPieces: Set<number> }> {
-  // For empty board with all pieces, use pre-generated matrix
-  const isEmpty = state.board.every((row) => row.every((cell) => cell === 0));
-  const hasAllPieces = state.remainingPieces.size === 12;
+  try {
+    const fileContent = readFileSync(
+      "./src/polysphere-dancing-links/polysphere_exact_cover_matrix.json",
+      "utf8",
+    );
+    const data = JSON.parse(fileContent);
+    const { matrix, placements } = data;
 
-  if (isEmpty && hasAllPieces) {
-    // Load pre-generated matrix
-    try {
-      const fileContent = readFileSync(
-        "./src/polysphere-dancing-links/polysphere_exact_cover_matrix.json",
-        "utf8",
-      );
-      const data = JSON.parse(fileContent);
-      const { matrix, placements } = data;
+    // Filter matrix for partial board
+    const { filteredMatrix, filteredPlacements } = filterMatrixForPartialBoard(
+      matrix,
+      placements,
+      state.board,
+      state.remainingPieces,
+    );
 
-      // Solve using Dancing Links
-      const solutions = solveDancingLinks(matrix);
+    if (filteredMatrix.length === 0) {
+      return; // No valid placements
+    }
 
-      for (const solution of solutions) {
-        // Convert solution to board format
-        const board = Array(5)
-          .fill(null)
-          .map(() => Array(11).fill(0));
+    // Solve using Dancing Links with filtered matrix
+    const solutions = solveDancingLinks(filteredMatrix);
 
-        for (const rowIndex of solution) {
-          const placement = placements[rowIndex];
-          const { pieceId, position, orientationIndex } = placement;
-          const [startRow, startCol] = position;
-          const piece = getPiece(pieceId);
-          const orientations = generateOrientations(piece.shape);
-          const shape = orientations[orientationIndex];
+    for (const solution of solutions) {
+      // Convert solution to board format, starting with existing board
+      const board = state.board.map((row) => [...row]);
 
-          for (let r = 0; r < shape.length; r++) {
-            for (let c = 0; c < shape[0].length; c++) {
-              if (shape[r][c]) {
-                const boardRow = startRow + r;
-                const boardCol = startCol + c;
-                board[boardRow][boardCol] = pieceId;
-              }
+      for (const rowIndex of solution) {
+        const placement = filteredPlacements[rowIndex];
+        const { pieceId, position, orientationIndex } = placement;
+        const [startRow, startCol] = position;
+        const piece = getPiece(pieceId);
+        const orientations = generateOrientations(piece.shape);
+        const shape = orientations[orientationIndex];
+
+        for (let r = 0; r < shape.length; r++) {
+          for (let c = 0; c < shape[0].length; c++) {
+            if (shape[r][c]) {
+              const boardRow = startRow + r;
+              const boardCol = startCol + c;
+              board[boardRow][boardCol] = pieceId;
             }
           }
         }
-
-        yield {
-          board,
-          remainingPieces: new Set(),
-        };
       }
-    } catch (error) {
-      console.error("Failed to load matrix data:", error);
-      // If matrix loading fails, don't yield any solutions
-      return;
+
+      yield {
+        board,
+        remainingPieces: new Set(),
+      };
     }
-  } else {
-    // For partial solutions, this Dancing Links solver doesn't handle them
-    // The API should use the original backtracking solver for partial cases
+  } catch (error) {
+    console.error("Failed to load matrix data:", error);
     return;
   }
+}
+
+function filterMatrixForPartialBoard(
+  matrix: number[][],
+  placements: Array<{
+    pieceId: number;
+    position: [number, number];
+    orientationIndex: number;
+  }>,
+  board: number[][],
+  remainingPieces: Set<number>,
+): {
+  filteredMatrix: number[][];
+  filteredPlacements: typeof placements;
+} {
+  // Find occupied cells on the board
+  const occupiedCells = new Set<string>();
+  for (let r = 0; r < board.length; r++) {
+    for (let c = 0; c < board[r].length; c++) {
+      if (board[r][c] > 0) {
+        occupiedCells.add(`${r},${c}`);
+      }
+    }
+  }
+
+  // Filter placements to only include valid ones
+  const validPlacements: typeof placements = [];
+
+  for (let i = 0; i < placements.length; i++) {
+    const placement = placements[i];
+
+    // Skip if piece is not in remaining pieces
+    if (!remainingPieces.has(placement.pieceId)) {
+      continue;
+    }
+
+    // Check if placement conflicts with occupied cells
+    const { pieceId, position, orientationIndex } = placement;
+    const [startRow, startCol] = position;
+    const piece = getPiece(pieceId);
+    const orientations = generateOrientations(piece.shape);
+    const shape = orientations[orientationIndex];
+
+    let conflicts = false;
+    for (let r = 0; r < shape.length && !conflicts; r++) {
+      for (let c = 0; c < shape[0].length && !conflicts; c++) {
+        if (shape[r][c]) {
+          const boardRow = startRow + r;
+          const boardCol = startCol + c;
+          if (occupiedCells.has(`${boardRow},${boardCol}`)) {
+            conflicts = true;
+          }
+        }
+      }
+    }
+
+    if (!conflicts) {
+      validPlacements.push(placement);
+    }
+  }
+
+  // Calculate which constraint columns to keep
+  // Remove columns for: occupied cells + already-placed pieces
+  const columnsToKeep: number[] = [];
+
+  // Keep cell constraints for unoccupied cells only
+  for (let cellIndex = 0; cellIndex < 55; cellIndex++) {
+    const r = Math.floor(cellIndex / 11);
+    const c = cellIndex % 11;
+    if (board[r][c] === 0) {
+      columnsToKeep.push(cellIndex);
+    }
+  }
+
+  // Keep piece constraints for remaining pieces only
+  for (let pieceId = 1; pieceId <= 12; pieceId++) {
+    if (remainingPieces.has(pieceId)) {
+      const pieceConstraintIndex = 55 + (pieceId - 1);
+      columnsToKeep.push(pieceConstraintIndex);
+    }
+  }
+
+  // Build new matrix with only valid placements and relevant columns
+  const filteredMatrix: number[][] = [];
+  const filteredPlacements: typeof placements = [];
+
+  for (let i = 0; i < placements.length; i++) {
+    const placement = placements[i];
+
+    // Check if this placement is in our valid list
+    const isValid = validPlacements.some(
+      (vp) =>
+        vp.pieceId === placement.pieceId &&
+        vp.position[0] === placement.position[0] &&
+        vp.position[1] === placement.position[1] &&
+        vp.orientationIndex === placement.orientationIndex,
+    );
+
+    if (isValid) {
+      const originalRow = matrix[i];
+
+      // Create new row with only the columns we're keeping
+      const newRow = columnsToKeep.map((colIndex) => originalRow[colIndex]);
+
+      filteredMatrix.push(newRow);
+      filteredPlacements.push(placement);
+    }
+  }
+
+  return { filteredMatrix, filteredPlacements };
 }
 
 /**
