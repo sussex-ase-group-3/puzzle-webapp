@@ -4,6 +4,15 @@
  * Textbook implementation following Knuth's specifications exactly
  */
 
+import { readFileSync } from "fs";
+import { getPiece } from "../polysphere/pieces.js";
+import {
+  rotateClockwise,
+  flipHorizontal,
+} from "../polysphere/board-operations.js";
+import lodash from "lodash";
+const { cloneDeep } = lodash;
+
 export type ExactCoverMatrix = number[][];
 
 // Dancing Links Node
@@ -289,4 +298,110 @@ export function validateSolution(
   }
 
   return columnCounts.every((count) => count === 1);
+}
+
+function generateOrientations(shape: boolean[][]): boolean[][][] {
+  const uniqueShapes: boolean[][][] = [];
+  const seen = new Set<string>();
+
+  for (let flipped = 0; flipped < 2; flipped++) {
+    for (let rotations = 0; rotations < 4; rotations++) {
+      let currentShape = cloneDeep(shape);
+
+      if (flipped === 1) {
+        currentShape = flipHorizontal(currentShape);
+      }
+
+      for (let r = 0; r < rotations; r++) {
+        currentShape = rotateClockwise(currentShape);
+      }
+
+      const shapeKey = currentShape
+        .map((row) => row.map((cell) => (cell ? "1" : "0")).join(""))
+        .join("|");
+
+      if (!seen.has(shapeKey)) {
+        seen.add(shapeKey);
+        uniqueShapes.push(cloneDeep(currentShape));
+      }
+    }
+  }
+
+  return uniqueShapes;
+}
+
+/**
+ * Solve the polysphere puzzle using Dancing Links
+ * Same interface as the original backtracking solver
+ */
+export function* solve(state: {
+  board: number[][];
+  remainingPieces: Set<number>;
+}): Generator<{ board: number[][]; remainingPieces: Set<number> }> {
+  // For empty board with all pieces, use pre-generated matrix
+  const isEmpty = state.board.every((row) => row.every((cell) => cell === 0));
+  const hasAllPieces = state.remainingPieces.size === 12;
+
+  if (isEmpty && hasAllPieces) {
+    // Load pre-generated matrix
+    try {
+      const fileContent = readFileSync(
+        "./src/polysphere-dancing-links/polysphere_exact_cover_matrix.json",
+        "utf8",
+      );
+      const data = JSON.parse(fileContent);
+      const { matrix, placements } = data;
+
+      // Solve using Dancing Links
+      const solutions = solveDancingLinks(matrix);
+
+      for (const solution of solutions) {
+        // Convert solution to board format
+        const board = Array(5)
+          .fill(null)
+          .map(() => Array(11).fill(0));
+
+        for (const rowIndex of solution) {
+          const placement = placements[rowIndex];
+          const { pieceId, position, orientationIndex } = placement;
+          const [startRow, startCol] = position;
+          const piece = getPiece(pieceId);
+          const orientations = generateOrientations(piece.shape);
+          const shape = orientations[orientationIndex];
+
+          for (let r = 0; r < shape.length; r++) {
+            for (let c = 0; c < shape[0].length; c++) {
+              if (shape[r][c]) {
+                const boardRow = startRow + r;
+                const boardCol = startCol + c;
+                board[boardRow][boardCol] = pieceId;
+              }
+            }
+          }
+        }
+
+        yield {
+          board,
+          remainingPieces: new Set(),
+        };
+      }
+    } catch (error) {
+      console.error("Failed to load matrix data:", error);
+      // If matrix loading fails, don't yield any solutions
+      return;
+    }
+  } else {
+    // For partial solutions, this Dancing Links solver doesn't handle them
+    // The API should use the original backtracking solver for partial cases
+    return;
+  }
+}
+
+/**
+ * Create an empty 5x11 polysphere board
+ */
+export function createEmptyBoard(): number[][] {
+  return Array(5)
+    .fill(null)
+    .map(() => Array(11).fill(0));
 }
