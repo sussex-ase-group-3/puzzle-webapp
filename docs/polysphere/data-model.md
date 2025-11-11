@@ -129,6 +129,27 @@ yield\* solve(place piece) // yield all solutions from this branch
 
 We could probably even reuse the solve function from n-queens with minimal modifications, just changing it to a generator function to handle the large solution space efficiently.
 
+## Dancing Links and Algorithm X
+
+### Representation
+
+To efficiently solve the Polysphere packing puzzle, we will use the Dancing Links technique in conjunction with Algorithm X. The representation for the problem will be as follows:
+
+```
+[C1, C2, ..., C55, P1, P2, ..., P12]
+```
+
+- `CX` represents cell `X` (calculated as `5 * column + row`).
+- `PX` represents piece `X`.
+
+This representation allows us to map the board's cells and pieces into a compact and efficient structure suitable for the Dancing Links algorithm.
+
+### Algorithm X
+
+Algorithm X is a backtracking algorithm for solving exact cover problems. It works by selecting a column, covering it, and trying to cover the remaining columns. If no solution is found, it backtracks.
+
+Dancing Links is a technique that makes this process efficient by using a circular doubly linked list. This allows quick removal and restoration of rows and columns during backtracking, making it ideal for this puzzle.
+
 ## List of Pieces
 
 0-9
