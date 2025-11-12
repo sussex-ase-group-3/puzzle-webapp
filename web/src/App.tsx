@@ -1,7 +1,7 @@
 // web/src/App.tsx
 import { useState } from "react";
-import { NQueensPage } from "./pages/NQueensPage";
-import { PolyspherePage } from "./pages/PolyspherePage";
+import { NQueensPage } from "./features/nqueens/page/NQueensPage";
+import { PolyspherePage } from "./features/polysphere/page/PolyspherePage";
 
 type Tab = "nqueens" | "polysphere";
 
