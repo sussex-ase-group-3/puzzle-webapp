@@ -209,7 +209,7 @@ app.get("/polysphere/solver/stream", (req, res) => {
 
   let streamInterval: NodeJS.Timeout;
 
-  const sendSolution = () => {
+  const sendSolutionBatch = () => {
     if (!activeGenerator) {
       res.write("event: complete\n");
       res.write('data: {"message": "Solver completed or cancelled"}\n\n');
@@ -219,36 +219,52 @@ app.get("/polysphere/solver/stream", (req, res) => {
     }
 
     try {
-      const result = activeGenerator.generator.next();
+      const batchSize = 25; // Grab 100 solutions per interval
+      const solutions: any[] = [];
+      let isComplete = false;
 
-      if (result.done) {
-        activeGenerator = null;
-        res.write("event: complete\n");
-        res.write('data: {"message": "All solutions found"}\n\n');
-        clearInterval(streamInterval);
-        res.end();
-        return;
+      for (let i = 0; i < batchSize; i++) {
+        const result = activeGenerator.generator.next();
+
+        if (result.done) {
+          isComplete = true;
+          break;
+        }
+
+        activeGenerator.foundSolutions++;
+        solutions.push(result.value);
+
+        // Check if we've reached max solutions
+        if (
+          activeGenerator.maxSolutions !== undefined &&
+          activeGenerator.foundSolutions >= activeGenerator.maxSolutions
+        ) {
+          isComplete = true;
+          break;
+        }
       }
 
-      activeGenerator.foundSolutions++;
+      // Send batch of solutions
+      if (solutions.length > 0) {
+        const data = {
+          solutions,
+          foundSolutions: activeGenerator.foundSolutions,
+          maxSolutions: activeGenerator.maxSolutions ?? -1, // -1 indicates unlimited
+        };
 
-      const data = {
-        solution: result.value,
-        foundSolutions: activeGenerator.foundSolutions,
-        maxSolutions: activeGenerator.maxSolutions ?? -1, // -1 indicates unlimited
-      };
+        res.write("event: batch\n");
+        res.write(`data: ${JSON.stringify(data)}\n\n`);
+      }
 
-      res.write("event: solution\n");
-      res.write(`data: ${JSON.stringify(data)}\n\n`);
-
-      // Check if we've reached max solutions
-      if (
-        activeGenerator.maxSolutions !== undefined &&
-        activeGenerator.foundSolutions >= activeGenerator.maxSolutions
-      ) {
+      // Handle completion
+      if (isComplete) {
         activeGenerator = null;
         res.write("event: complete\n");
-        res.write('data: {"message": "Maximum solutions reached"}\n\n');
+        const message =
+          activeGenerator?.maxSolutions !== undefined
+            ? "Maximum solutions reached"
+            : "All solutions found";
+        res.write(`data: {"message": "${message}"}\n\n`);
         clearInterval(streamInterval);
         res.end();
       }
@@ -263,7 +279,7 @@ app.get("/polysphere/solver/stream", (req, res) => {
   };
 
   // Start streaming
-  streamInterval = setInterval(sendSolution, intervalMs);
+  streamInterval = setInterval(sendSolutionBatch, intervalMs);
 
   // Clean up on client disconnect
   req.on("close", () => {
