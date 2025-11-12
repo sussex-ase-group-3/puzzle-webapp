@@ -30,8 +30,12 @@ export function PolyspherePage() {
     const [active, setActive] = useState(false);
     const [streaming, setStreaming] = useState(false);
     const [solutions, setSolutions] = useState<{ board: Board }[]>([]);
+    const solutionsCountRef = useRef(0);
     const [error, setError] = useState<string | null>(null);
     const esRef = useRef<EventSource | null>(null);
+    const [doneMessage, setDoneMessage] = useState<string | null>(null);
+
+
 
     // preview cells for drag-over ghost
     const [preview, setPreview] = useState<Set<string> | null>(null);
@@ -95,49 +99,76 @@ export function PolyspherePage() {
         setAllowed(a => a.filter(id => id !== payload.pieceId));
     };
 
-    // EDIT: right-click to erase contiguous piece
-    const onCellMouseDown = (r:number, c:number, e: React.MouseEvent) => {
+    const onCellMouseDown = (r: number, c: number, e: React.MouseEvent) => {
         if (e.button === 2) {
-            setDraft(b => erasePiece(b, r, c));
-            if (draft[r][c] > 0) {
-                // piece might become available again
-                setAllowed(a => Array.from(new Set([...a, draft[r][c]])).sort((x,y)=>x-y));
+            const pid = draft[r][c];
+            if (pid > 0) {
+                setDraft(b => erasePiece(b, r, c));
+                // piece becomes available again
+                setAllowed(a => Array.from(new Set([...a, pid])).sort((x, y) => x - y));
             }
         }
     };
 
+
     const onStart = async () => {
-        setError(null); setSolutions([]); setActive(false);
+        setError(null);
+        setDoneMessage(null);
+        setSolutions([]);
+        solutionsCountRef.current = 0;
+        setActive(false);
         try {
-            const remaining = remainingFromAllowed([...ALL_PIECES], draft); // or from 'allowed' if you prefer manual curation
-            await startPolysphereSolver({
-                board: draft,
-                remainingPieces: remaining,
-                maxSolutions: 200,
-            });
+            const remaining = remainingFromAllowed([...ALL_PIECES], draft);
+            await startPolysphereSolver({ board: draft, remainingPieces: remaining, maxSolutions: 200 });
             setActive(true);
         } catch (e: any) {
             setError(e?.message ?? "Failed to start solver");
         }
     };
 
+
+
     const onNextBatch = async () => {
         if (!active) { setError("Start the solver first"); return; }
         setError(null);
+        setDoneMessage(null);
         try {
             const res = await getNextPolysphereSolutions(10);
-            setSolutions(prev => [...prev, ...res.solutions]);
-            if (res.isComplete) setActive(false);
+
+            const incoming = res.solutions.length;
+            const before = solutionsCountRef.current;
+            if (incoming > 0) {
+                setSolutions(prev => {
+                    const next = [...prev, ...res.solutions];
+                    solutionsCountRef.current = next.length;
+                    return next;
+                });
+            }
+
+            if (res.isComplete) {
+                setActive(false);
+                const total = before + incoming;
+                setDoneMessage(total === 0
+                    ? "No solutions found for this configuration."
+                    : "No more solutions."
+                );
+            }
         } catch (e: any) {
             setError(e?.message ?? "Failed to get next solutions");
         }
     };
 
+
+
+
     const onStream = async () => {
         setError(null);
+        setDoneMessage(null);
+
         if (!active) {
             try { await onStart(); } catch { return; }
         }
+
         setStreaming(true);
         const es = streamPolysphereSolutions(200);
         esRef.current = es;
@@ -149,9 +180,37 @@ export function PolyspherePage() {
             } catch {}
         });
 
-        const end = () => { setStreaming(false); setActive(false); esRef.current?.close(); esRef.current = null; };
-        es.addEventListener("complete", end as any);
-        es.addEventListener("error", () => { setError("Stream error"); end(); });
+        const end = () => {
+            setStreaming(false);
+            setActive(false);
+            esRef.current?.close();
+            esRef.current = null;
+        };
+        es.addEventListener("solution", (evt: MessageEvent) => {
+            try {
+                const data = JSON.parse(evt.data);
+                setSolutions(prev => {
+                    const next = [...prev, data.solution];
+                    solutionsCountRef.current = next.length;
+                    return next;
+                });
+            } catch {}
+        });
+
+        es.addEventListener("complete", () => {
+            end();
+            const count = solutionsCountRef.current;
+            setDoneMessage(count === 0
+                ? "No solutions found for this configuration."
+                : "No more solutions."
+            );
+        });
+
+
+        es.addEventListener("error", () => {
+            setError("Stream error");
+            end();
+        });
     };
 
     const onCancel = async () => {
@@ -159,7 +218,9 @@ export function PolyspherePage() {
         esRef.current?.close(); esRef.current = null;
         try { await cancelPolysphereSolver(); } catch {}
         setActive(false);
+        setDoneMessage(null);
     };
+
 
     useEffect(() => () => { esRef.current?.close(); }, []);
 
@@ -185,13 +246,40 @@ export function PolyspherePage() {
                         <button onClick={onNextBatch} disabled={!active || streaming}>Next 10</button>
                         <button onClick={onStream} disabled={streaming}>{streaming ? "Streaming…" : "Stream"}</button>
                         <button onClick={onCancel}>Cancel</button>
-                        <button onClick={()=>{ setDraft(emptyBoard()); setSolutions([]); setActive(false); setStreaming(false); setAllowed([...ALL_PIECES]); }}>
+                        <button
+                            onClick={() => {
+                                setDraft(emptyBoard());
+                                setSolutions([]);
+                                solutionsCountRef.current = 0;
+                                setActive(false);
+                                setStreaming(false);
+                                setAllowed([...ALL_PIECES]);
+                                setDoneMessage(null);
+                                setError(null);
+                            }}
+                        >
                             Reset
                         </button>
+
                         <div>Active: {String(active)} • Received: {solutions.length}</div>
                     </div>
 
                     {error && <div style={{ color:"crimson" }}>{error}</div>}
+                    {doneMessage && (
+                        <div
+                            style={{
+                                color: "#155724",
+                                background: "#d4edda",
+                                border: "1px solid #c3e6cb",
+                                padding: "8px 10px",
+                                borderRadius: 6,
+                                fontWeight: 500,
+                            }}
+                        >
+                            {doneMessage}
+                        </div>
+                    )}
+
                 </div>
 
                 {/* Right: board */}
