@@ -1,26 +1,7 @@
-// web/src/api.ts
 import type {
-    SolveRequest,
-    SolveResponse,
     PolyNextResponse,
     PolyStartRequest,
 } from "./types";
-
-/** N-Queens — match Express route: POST /n-queens/solver */
-export async function fetchNQueenSolutions(
-    req: SolveRequest,
-): Promise<SolveResponse> {
-    const response = await fetch("/api/n-queens/solver", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ n: req.n, board: req.partial }),
-    });
-    if (!response.ok) {
-        const errorText = await response.text().catch(() => "");
-        throw new Error(`Solve failed: ${response.status} ${errorText}`);
-    }
-    return response.json();
-}
 
 /** Polysphere — start (POST /polysphere/solver) */
 export async function startPolysphereSolver(
