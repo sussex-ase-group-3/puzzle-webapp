@@ -1,8 +1,6 @@
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from "vite";
 
 export default defineConfig({
-  test: {
-    globals: true,
-    environment: 'node',
-  },
+  // This file is kept for potential future Vite build configuration
+  // Test configuration has been moved to vitest.config.ts
 });
