@@ -14,7 +14,7 @@ const PORT = Number(process.env.PORT ?? 3000);
 // Store single active generator
 let activeGenerator: {
   generator: Generator<PuzzleState>;
-  maxSolutions: number;
+  maxSolutions: number | undefined;
   foundSolutions: number;
 } | null = null;
 
@@ -100,7 +100,7 @@ app.post("/n-queens/solver", (req, res) => {
 // Create polysphere solver
 app.post("/polysphere/solver", (req, res) => {
   try {
-    const { board, remainingPieces, maxSolutions = 10 } = req.body;
+    const { board, remainingPieces, maxSolutions } = req.body;
 
     let initialState: PuzzleState;
 
@@ -128,7 +128,7 @@ app.post("/polysphere/solver", (req, res) => {
 
     res.json({
       success: true,
-      maxSolutions,
+      maxSolutions: maxSolutions ?? -1, // -1 indicates unlimited
     });
   } catch (error) {
     console.error("Polysphere solver error:", error);
@@ -154,12 +154,7 @@ app.get("/polysphere/solver/next", (req, res) => {
     const solutions: PuzzleState[] = [];
     let isComplete = false;
 
-    for (
-      let i = 0;
-      i < requestedCount &&
-      activeGenerator.foundSolutions < activeGenerator.maxSolutions;
-      i++
-    ) {
+    for (let i = 0; i < requestedCount; i++) {
       const result = activeGenerator.generator.next();
       if (result.done) {
         isComplete = true;
@@ -169,19 +164,20 @@ app.get("/polysphere/solver/next", (req, res) => {
       activeGenerator.foundSolutions++;
     }
 
-    // Clean up if complete or max reached
-    if (
-      isComplete ||
-      activeGenerator.foundSolutions >= activeGenerator.maxSolutions
-    ) {
+    // Capture values before cleanup
+    const currentFoundSolutions = activeGenerator.foundSolutions;
+    const currentMaxSolutions = activeGenerator.maxSolutions;
+
+    // Clean up if complete (no maxSolutions limit for "next" endpoint)
+    if (isComplete) {
       activeGenerator = null;
     }
 
     res.json({
       solutions,
       isComplete,
-      foundSolutions: activeGenerator?.foundSolutions || 0,
-      maxSolutions: activeGenerator?.maxSolutions || 0,
+      foundSolutions: currentFoundSolutions,
+      maxSolutions: currentMaxSolutions ?? -1, // -1 indicates unlimited
     });
   } catch (error) {
     console.error("Polysphere next solutions error:", error);
@@ -239,14 +235,17 @@ app.get("/polysphere/solver/stream", (req, res) => {
       const data = {
         solution: result.value,
         foundSolutions: activeGenerator.foundSolutions,
-        maxSolutions: activeGenerator.maxSolutions,
+        maxSolutions: activeGenerator.maxSolutions ?? -1, // -1 indicates unlimited
       };
 
       res.write("event: solution\n");
       res.write(`data: ${JSON.stringify(data)}\n\n`);
 
       // Check if we've reached max solutions
-      if (activeGenerator.foundSolutions >= activeGenerator.maxSolutions) {
+      if (
+        activeGenerator.maxSolutions !== undefined &&
+        activeGenerator.foundSolutions >= activeGenerator.maxSolutions
+      ) {
         activeGenerator = null;
         res.write("event: complete\n");
         res.write('data: {"message": "Maximum solutions reached"}\n\n');
