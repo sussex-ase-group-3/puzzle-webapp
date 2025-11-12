@@ -1,10 +1,3 @@
-// web/src/types.ts
-// N-Queens
-export type BoardState = number[];           // arr[row] = col, -1 for empty
-export type SolveRequest = { n: number; partial: BoardState; };
-export type SolveResponse = { solutions: BoardState[]; };
-
-// Polysphere (assumptions: 2D array board; 0 = empty, >0 = piece id)
 export type PolyBoard = number[][];
 
 export type PolyPuzzleState = {
