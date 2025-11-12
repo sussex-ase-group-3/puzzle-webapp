@@ -210,7 +210,8 @@ app.get("/polysphere/solver/stream", (req, res) => {
   let streamInterval: NodeJS.Timeout;
 
   const sendSolutionBatch = () => {
-    if (!activeGenerator) {
+    const ag = activeGenerator;
+    if (!ag) {
       res.write("event: complete\n");
       res.write('data: {"message": "Solver completed or cancelled"}\n\n');
       clearInterval(streamInterval);
@@ -219,25 +220,25 @@ app.get("/polysphere/solver/stream", (req, res) => {
     }
 
     try {
-      const batchSize = 25; // Grab 100 solutions per interval
+      const batchSize = 25; // Grab 25 solutions per interval
       const solutions: any[] = [];
       let isComplete = false;
 
       for (let i = 0; i < batchSize; i++) {
-        const result = activeGenerator.generator.next();
+        const result = ag.generator.next();
 
         if (result.done) {
           isComplete = true;
           break;
         }
 
-        activeGenerator.foundSolutions++;
+        ag.foundSolutions++;
         solutions.push(result.value);
 
         // Check if we've reached max solutions
         if (
-          activeGenerator.maxSolutions !== undefined &&
-          activeGenerator.foundSolutions >= activeGenerator.maxSolutions
+          ag.maxSolutions !== undefined &&
+          ag.foundSolutions >= ag.maxSolutions
         ) {
           isComplete = true;
           break;
@@ -248,8 +249,8 @@ app.get("/polysphere/solver/stream", (req, res) => {
       if (solutions.length > 0) {
         const data = {
           solutions,
-          foundSolutions: activeGenerator.foundSolutions,
-          maxSolutions: activeGenerator.maxSolutions ?? -1, // -1 indicates unlimited
+          foundSolutions: ag.foundSolutions,
+          maxSolutions: ag.maxSolutions ?? -1, // -1 indicates unlimited
         };
 
         res.write("event: batch\n");
@@ -258,13 +259,19 @@ app.get("/polysphere/solver/stream", (req, res) => {
 
       // Handle completion
       if (isComplete) {
+        // Capture final counts from ag BEFORE clearing the active generator
+        const finalFound = ag.foundSolutions;
+        const finalMax = ag.maxSolutions;
+        // Now clear the generator
         activeGenerator = null;
         res.write("event: complete\n");
         const message =
-          activeGenerator?.maxSolutions !== undefined
+          finalMax !== undefined
             ? "Maximum solutions reached"
             : "All solutions found";
-        res.write(`data: {"message": "${message}"}\n\n`);
+        res.write(
+          `data: {"message": "${message}", "foundSolutions": ${finalFound}, "maxSolutions": ${finalMax ?? -1}}\n\n`,
+        );
         clearInterval(streamInterval);
         res.end();
       }
