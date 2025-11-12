@@ -2,6 +2,14 @@
   "name": "puzzle-webapp",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "api",
+    "web"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "npm@10",
   "scripts": {
     "dev": "concurrently \"npm run dev:api\" \"npm run dev:web\"",
     "dev:api": "cd api && npm run dev",
@@ -17,10 +25,10 @@
   },
   "devDependencies": {
     "@types/lodash": "^4.17.20",
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "vitest": "^2.0.5"
   },
   "dependencies": {
-    "lodash": "^4.17.21",
-    "vitest": "^4.0.3"
+    "lodash": "^4.17.21"
   }
 }
