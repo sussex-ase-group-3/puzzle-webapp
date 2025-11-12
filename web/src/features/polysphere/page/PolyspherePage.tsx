@@ -44,6 +44,7 @@ export function PolyspherePage() {
   const [error, setError] = useState<string | null>(null);
   const esRef = useRef<EventSource | null>(null);
   const [doneMessage, setDoneMessage] = useState<string | null>(null);
+  const [maxSolutions, setMaxSolutions] = useState<number>(1000);
 
   // preview cells for drag-over ghost
   const [preview, setPreview] = useState<Set<string> | null>(null);
@@ -148,7 +149,11 @@ export function PolyspherePage() {
     setActive(false);
     try {
       const remaining = remainingFromAllowed([...ALL_PIECES], draft);
-      await startPolysphereSolver({ board: draft, remainingPieces: remaining });
+      await startPolysphereSolver({
+        board: draft,
+        remainingPieces: remaining,
+        maxSolutions: maxSolutions,
+      });
       setActive(true);
     } catch (e: any) {
       setError(e?.message ?? "Failed to start solver");
@@ -211,11 +216,11 @@ export function PolyspherePage() {
       esRef.current?.close();
       esRef.current = null;
     };
-    es.addEventListener("solution", (evt: MessageEvent) => {
+    es.addEventListener("batch", (evt: MessageEvent) => {
       try {
         const data = JSON.parse(evt.data);
         setSolutions((prev) => {
-          const next = [...prev, data.solution];
+          const next = [...prev, ...data.solutions];
           solutionsCountRef.current = next.length;
           return next;
         });
@@ -288,9 +293,27 @@ export function PolyspherePage() {
             <button onClick={onNextBatch} disabled={!active || streaming}>
               Next 10
             </button>
-            <button onClick={onStream} disabled={streaming}>
-              {streaming ? "Streaming…" : "Stream"}
-            </button>
+            <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+              <button
+                onClick={onStream}
+                disabled={streaming}
+                style={{ flex: 1 }}
+              >
+                {streaming ? "Streaming…" : "Stream"}
+              </button>
+              <input
+                type="number"
+                value={maxSolutions}
+                onChange={(e) =>
+                  setMaxSolutions(parseInt(e.target.value) || 1000)
+                }
+                min="1"
+                max="100000"
+                style={{ width: "70px" }}
+                disabled={streaming}
+                title="Maximum solutions for streaming"
+              />
+            </div>
             <button onClick={onCancel}>Cancel</button>
             <button
               onClick={() => {
