@@ -2,14 +2,18 @@ import React from "react";
 import type { BoardState } from "../types";
 
 export function Board({
-  n, placement, editable, onToggle
+  n,
+  placement,
+  editable,
+  onToggle,
 }: {
   n: number;
   placement: BoardState;
   editable: boolean;
   onToggle: (row: number, col: number) => void;
 }) {
-  const size = `min(48px, calc(80vmin/${n}))`;
+  const size = `min(64px, calc(80vmin/${n}))`;
+
   return (
     <div
       role="grid"
@@ -18,14 +22,22 @@ export function Board({
         display: "grid",
         gridTemplateColumns: `repeat(${n}, ${size})`,
         gridAutoRows: `${size}`,
-        border: "1px solid #ccc",
-        width: "fit-content"
+        gap: "4px",
+        border: "1px solid #333",
+        borderRadius: "12px",
+        padding: "4px",
+        background: "rgba(0, 0, 0, 1)", // optional board background
+        marginLeft: "16px",
+        marginRight: "16px",
+
       }}
     >
       {Array.from({ length: n * n }, (_, i) => {
-        const r = Math.floor(i / n), c = i % n;
+        const r = Math.floor(i / n),
+          c = i % n;
         const hasQ = placement[r] === c;
         const dark = (r + c) % 2 === 1;
+
         return (
           <button
             key={i}
@@ -34,13 +46,30 @@ export function Board({
             disabled={!editable}
             onClick={() => editable && onToggle(r, c)}
             style={{
+              width: size,
+              height: size,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: "6px",
+              fontWeight: 700,
+              fontSize: "clamp(20px, 5vmin, 32px)",
+              background: dark ? "#212121ff" : "#fefefe",
+              color: dark ? "white" : "black",
               border: "none",
-              background: dark ? "#b58863" : "#f0d9b5",
               cursor: editable ? "pointer" : "default",
-              fontSize: "clamp(16px, 6vmin, 26px)"
+              transition: "all 0.2s",
+              boxShadow: hasQ ? "0 0 8px rgba(255,255,255,0.8)" : "none",
+            }}
+            onMouseEnter={(e) => {
+              if (editable)
+                e.currentTarget.style.filter = "brightness(1.1)";
+            }}
+            onMouseLeave={(e) => {
+              if (editable) e.currentTarget.style.filter = "brightness(1)";
             }}
           >
-            {hasQ ? "♛" : ""}
+            {hasQ && <span>♕</span>}
           </button>
         );
       })}
