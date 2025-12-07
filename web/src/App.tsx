@@ -2,8 +2,9 @@
 import { useState } from "react";
 import { NQueensPage } from "./features/nqueens/page/NQueensPage";
 import { PolyspherePage } from "./features/polysphere/page/PolyspherePage";
+import { Polysphere3DPage } from "./features/polysphere-3d/page/Polysphere3DPage";
 
-type Tab = "nqueens" | "polysphere";
+type Tab = "nqueens" | "polysphere" | "polysphere3d";
 
 export default function App() {
     const [tab, setTab] = useState<Tab>("nqueens");
@@ -35,9 +36,25 @@ export default function App() {
                 >
                     Polysphere
                 </button>
+                <button
+                    onClick={() => setTab("polysphere3d")}
+                    aria-pressed={tab === "polysphere3d"}
+                    style={{
+                        padding: "6px 12px",
+                        borderRadius: 8,
+                        border: "1px solid #ccc",
+                        background: tab === "polysphere3d" ? "#eef" : "#fff",
+                    }}
+                >
+                    Polysphere 3D
+                </button>
+
             </nav>
 
-            {tab === "nqueens" ? <NQueensPage /> : <PolyspherePage />}
+            {tab === "nqueens" && <NQueensPage />}
+            {tab === "polysphere" && <PolyspherePage />}
+            {tab === "polysphere3d" && <Polysphere3DPage />}
+
         </div>
     );
 }
