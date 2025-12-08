@@ -12,7 +12,7 @@ export function Board({
   editable: boolean;
   onToggle: (row: number, col: number) => void;
 }) {
-  const size = `min(64px, calc(80vmin/${n}))`;
+  const size = `max(68px, calc(80vmin/${n}))`;
 
   return (
     <div
@@ -20,6 +20,7 @@ export function Board({
       aria-label={`${n} by ${n} board`}
       style={{
         display: "grid",
+        flexWrap: "wrap",
         gridTemplateColumns: `repeat(${n}, ${size})`,
         gridAutoRows: `${size}`,
         gap: "4px",
@@ -27,8 +28,7 @@ export function Board({
         borderRadius: "12px",
         padding: "4px",
         background: "rgba(0, 0, 0, 1)", // optional board background
-        marginLeft: "16px",
-        marginRight: "16px",
+        margin: "0 auto",
 
       }}
     >
@@ -69,7 +69,8 @@ export function Board({
               if (editable) e.currentTarget.style.filter = "brightness(1)";
             }}
           >
-            {hasQ && <span>♕</span>}
+            {hasQ && <span style={{ fontSize: "clamp(40px, 5vmin, 32px)" }}>♕</span>}
+
           </button>
         );
       })}
