@@ -4,7 +4,7 @@
  * Textbook implementation following Knuth's specifications exactly
  */
 
-import { readFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 import { getPiece } from "../polysphere/pieces.js";
 import {
   rotateClockwise,
@@ -14,6 +14,10 @@ import lodash from "lodash";
 const { cloneDeep } = lodash;
 
 export type ExactCoverMatrix = number[][];
+
+interface DLXStats {
+  //stats go here
+}
 
 // Dancing Links Node
 class DLXNode {
@@ -54,8 +58,19 @@ export class DancingLinksSolver {
   private header: ColumnHeader;
   private solution: number[];
 
-  constructor(matrix: ExactCoverMatrix) {
+  //stats
+  private measureStats: boolean;
+  private stats: DLXStats;
+
+  constructor(matrix: ExactCoverMatrix, measureStats: boolean = false) {
     this.solution = [];
+    this.measureStats = measureStats;
+    
+    //Initialise stats here
+    this.stats = {
+      //empty for now
+    }
+
     this.header = this.buildDLXStructure(matrix);
   }
 
@@ -199,6 +214,7 @@ export class DancingLinksSolver {
    */
   private *search(): Generator<number[]> {
     // If header points to itself, matrix is empty - we have a solution
+
     if (this.header.right === this.header) {
       yield [...this.solution];
       return;
