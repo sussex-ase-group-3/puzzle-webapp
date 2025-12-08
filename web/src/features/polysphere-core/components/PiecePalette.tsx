@@ -1,6 +1,7 @@
-// web/src/features/polysphere/components/PiecePalette.tsx
+// web/src/features/polysphere-core/components/PiecePalette.tsx
 import { PIECE_SHAPES, PIECE_COLOURS, toOffsets } from "../pieces";
-import { ALL_PIECES } from "../utils";
+import { ALL_PIECES } from "../pieceTypes";
+
 
 const DND_MIME = "application/x-polysphere-piece";
 
