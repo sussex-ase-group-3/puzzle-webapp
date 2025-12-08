@@ -270,7 +270,22 @@ export class DancingLinksSolver {
    */
   *solve(): Generator<number[]> {
     yield* this.search();
+
+    //Assuming that we should get the stats from here becuase if the solution is invalid 
+    //then we still can get the stats?
+    //
   }
+
+  //not sure where to place this, this is just a template
+  //private saveStats(): void {
+    //try {
+        //const outputPath = join(process.cwd(), "dlx_stats.json");
+        //writeFileSync(outputPath, JSON.stringify(this.stats))
+        //console.log(`stats saved to ${outputPath})
+    //} catch(err) {
+    //    console.error("Failed to save stats to file:", err)
+    //  }
+  // }
 
   /**
    * Get first solution only
