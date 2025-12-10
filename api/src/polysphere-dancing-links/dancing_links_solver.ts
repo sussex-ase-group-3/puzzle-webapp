@@ -11,10 +11,13 @@ import {
   flipHorizontal,
 } from "../polysphere/board-operations.js";
 import lodash from "lodash";
+import { PIECE_SHAPES } from "../polysphere/pieces.js"; //my code reusing PIECES_SHAPES
 const { cloneDeep } = lodash;
 
 export type ExactCoverMatrix = number[][];
 
+//tracking dead states and checking which pieces have been left over and writing this to 
+//ajson
 interface DLXStats {
   //stats go here
 }
@@ -58,19 +61,35 @@ export class DancingLinksSolver {
   private header: ColumnHeader;
   private solution: number[];
 
-  //stats
+  //My code added some new variables to make it easier to match pieces with imported piece shape
+  private stats: {
+    [solutionId: string]: {
+      usedPieces: number[];
+      unusedPieces: number[];
+    };
+  } = {};
+  private matrix: ExactCoverMatrix;
+  private placements: Array<{
+    pieceId: number;
+    position: [number, number];
+    orientationIndex: number;
+  }>
+  private tempUsedPieces: Set<number> = new Set();
+  private ALL_PIECE_IDS: number[]
   private measureStats: boolean;
-  private stats: DLXStats;
+  
+  
+  //Added more to constructor here (my code)
+  constructor(
+    matrix: ExactCoverMatrix,
+    placements: Array<{pieceId: number;position: [number, number];orientationIndex: number; }>, 
+    measureStats: boolean = false) {
 
-  constructor(matrix: ExactCoverMatrix, measureStats: boolean = false) {
     this.solution = [];
+    this.matrix = matrix;
+    this.placements = placements;
     this.measureStats = measureStats;
-    
-    //Initialise stats here
-    this.stats = {
-      //empty for now
-    }
-
+    this.ALL_PIECE_IDS = PIECE_SHAPES.map((_, index) => index).filter(id => id !== 0);
     this.header = this.buildDLXStructure(matrix);
   }
 
@@ -210,10 +229,46 @@ export class DancingLinksSolver {
   }
 
   /**
+   * my code
+   * Helper function for extracting the actual id of the piece
+   * returns Id of piece
+   */
+  private extractPieceIdFromRow(rowId: number): number {
+    return this.placements[rowId].pieceId;
+  }
+
+  /**
+   * my code Another helper function
+   * stores all the unused pieces and used pieces from each solution with a unique Id
+   */
+  private recordDeadEnd() {
+    if (!this.measureStats) return;
+
+    //adding a unique Id for this dead_end
+    const solutionId = `deadend_${Object.keys(this.stats).length}`;
+
+    //getting the usedPieces
+    const usedPieces = Array.from(this.tempUsedPieces);
+
+    //All piece ids from puzzle
+    const unusedPieces = this.ALL_PIECE_IDS.filter(
+      (id) => !usedPieces.includes(id)
+    );
+
+    //store stats
+    this.stats[solutionId] = {
+      usedPieces,
+      unusedPieces,
+    };
+  }
+
+
+  /**
    * Recursive search using Dancing Links Algorithm X
    */
   private *search(): Generator<number[]> {
     // If header points to itself, matrix is empty - we have a solution
+    
 
     if (this.header.right === this.header) {
       yield [...this.solution];
@@ -226,6 +281,7 @@ export class DancingLinksSolver {
 
     // If chosen column is empty, no solution in this branch
     if (col.size === 0) {
+      this.recordDeadEnd(); //my code
       return;
     }
 
@@ -237,6 +293,12 @@ export class DancingLinksSolver {
     while (r !== col) {
       // Include this row in partial solution
       this.solution.push(r.rowId);
+
+      //Adding used pieces by extracting rowID
+      if (this.measureStats) {
+        const pieceId = this.extractPieceIdFromRow(r.rowId);
+        this.tempUsedPieces.add(pieceId); 
+      }
 
       // Cover all other columns in this row
       let j = r.right;
@@ -255,6 +317,10 @@ export class DancingLinksSolver {
         j = j.left;
       }
 
+      if (this.measureStats) {
+        const pieceId = this.extractPieceIdFromRow(r.rowId);
+        this.tempUsedPieces.delete(pieceId); 
+      }
       // Remove row from partial solution
       this.solution.pop();
 
@@ -266,17 +332,34 @@ export class DancingLinksSolver {
   }
 
   /**
+   * My code
+   * Helper function
+   * saving stats to a json file
+   */
+  private saveStats(): void {
+    try {
+      const outputPath = "./dlx_stats.json";
+      writeFileSync(outputPath, JSON.stringify(this.stats, null, 2));
+      console.log(`DLX stats saved to ${outputPath}`);
+    } catch (err) {
+      console.error("Failed to save DLX stats: ", err);
+    }
+  }
+
+  /**
    * Solve and yield solutions one at a time
    */
   *solve(): Generator<number[]> {
     yield* this.search();
 
-    //Assuming that we should get the stats from here becuase if the solution is invalid 
-    //then we still can get the stats?
-    //
+    //My code
+    //Calling save stats after all solutions have been processed seems safer and not so slow
+    if (this.measureStats) {
+      this.saveStats();
+    }
   }
 
-  //not sure where to place this, this is just a template
+ 
   //private saveStats(): void {
     //try {
         //const outputPath = join(process.cwd(), "dlx_stats.json");
@@ -302,8 +385,10 @@ export class DancingLinksSolver {
  */
 export function* solveDancingLinks(
   matrix: ExactCoverMatrix,
+  placements: Array<{pieceId: number;position: [number, number];orientationIndex: number; }>, 
+  measureStats: boolean = false
 ): Generator<number[]> {
-  const solver = new DancingLinksSolver(matrix);
+  const solver = new DancingLinksSolver(matrix, placements, measureStats);
   yield* solver.solve();
 }
 
@@ -390,7 +475,7 @@ export function* solve(state: {
     }
 
     // Solve using Dancing Links with filtered matrix
-    const solutions = solveDancingLinks(filteredMatrix);
+    const solutions = solveDancingLinks(filteredMatrix, filteredPlacements, false);
 
     for (const solution of solutions) {
       // Convert solution to board format, starting with existing board
