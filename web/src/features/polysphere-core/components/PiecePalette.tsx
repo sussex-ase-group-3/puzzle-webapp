@@ -13,11 +13,27 @@ export function PiecePalette({
     flip: boolean; setFlip: (v:boolean)=>void;
     disabledIds?: Set<number>;
 }) {
+
+    // help to op block
+    const handleSelect = (pid: number) => {
+        if (selected !== pid) {
+            setSelected(pid);
+            setTurns(0);
+            setFlip(false);
+        }
+    };
+
     return (
         <div style={{ display:"grid", gap:8 }}>
             <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
                 {ALL_PIECES.map(pid => {
                     const disabled = !!disabledIds?.has(pid);
+
+                    const isSelected = selected === pid;
+
+                    const currentTurn = isSelected ? turns : 0;
+                    const currentFlip = isSelected ? flip : false;
+
                     return (
                         <div key={pid} style={{ display:"grid", gap:4, justifyItems:"center" }}>
                             <button
@@ -25,21 +41,34 @@ export function PiecePalette({
                                 disabled={disabled}
                                 style={{
                                     width:36, height:36, borderRadius:8,
-                                    border: selected===pid ? "2px solid #333" : "1px solid #ccc",
-                                    background: disabled ? "#ddd" : "#fff",
+                                    border: isSelected ? "2px solid #333" : "1px solid #ccc",
+                                    background: disabled ? "#ddd" : isSelected ? "#e6f7ff" : "#fff",
                                     cursor: disabled ? "not-allowed" : "pointer",
+                                    transition: "all 0.2s"
                                 }}
                                 title={disabled ? "Already placed" : `Piece ${pid}`}
                             >{pid}</button>
 
                             {/* Draggable mini */}
                             <div
-                                draggable={!disabled}
+                                draggable={!disabled && isSelected}
                                 onDragStart={(e) => {
-                                    e.dataTransfer.setData(DND_MIME, JSON.stringify({ pieceId: pid, turns, flip }));
+                                    if(selected !== pid) handleSelect(pid);
+
+                                    e.dataTransfer.setData(DND_MIME, JSON.stringify({
+                                        pieceId: pid,
+                                        turns: currentTurn,
+                                        flip: currentFlip
+                                    }));
                                     e.dataTransfer.effectAllowed = "copy";
                                 }}
-                                style={{ opacity: disabled ? 0.5 : 1, border: "1px dashed #ccc", padding: 4 }}
+                                style={{
+                                    opacity: disabled ? 0.5 : 1,
+                                    border: isSelected ? "1px dashed #333" : "1px dashed #ccc",
+                                    padding: 4,
+                                    transition: "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                                    transform: `rotate(${currentTurn * 90}deg) scaleX(${currentFlip ? -1 : 1})`
+                                }}
                                 title="Drag to board"
                             >
                                 <MiniShape pieceId={pid} colour={PIECE_COLOURS[pid]} />
