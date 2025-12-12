@@ -12,7 +12,7 @@ We adopted a lightweight Agile-inspired workflow, using GitHub Projects and issu
 
 ## 2. A Helpful Feature of Our Software Engineering Process
 
-One feature of our software engineering process that proved especially helpful was our strong emphasis on **quality assurance**, including code review, CI/CD automation, and consistent coding standards. The responsibilities associated with this work were outlined clearly in our project plan: reviewing and approving pull requests, maintaining documentation and style consistency, and catching issues early through testing and review. :contentReference[oaicite:0]{index=0}
+One feature of our software engineering process that proved especially helpful was our strong emphasis on quality assurance, including code review, CI/CD automation, and consistent coding standards. The responsibilities associated with this work were outlined clearly in our project plan: reviewing and approving pull requests, maintaining documentation and style consistency, and catching issues early through testing and review. 
 
 In practice, these procedures were carried out consistently. Pull requests were examined carefully before merging, CI pipelines provided immediate feedback on potential issues, and a well-structured testing framework ensured correctness in our puzzle-solving logic. Backend documentation and the consistent style enforced through linting also helped to maintain clarity across the codebase. This made it easier for contributors to understand the code and reduced integration friction throughout the project.
 
@@ -24,11 +24,11 @@ Overall, the emphasis on quality assurance was one of the most successful aspect
 
 ## 3. A Problematic Feature of Our Software Engineering Process
 
-A feature of our process that proved problematic was our reliance on a **largely asynchronous, role-based workflow**, which assumed consistent communication and regular task updates from all team members. This structure was chosen to make the most of differing schedules, minimise additional meetings outside the lab, and allow each member to manage their responsibilities autonomously.
+A feature of our process that proved problematic was our reliance on a largely asynchronous, role-based workflow, which assumed consistent communication and regular task updates from all team members. This structure was chosen to make the most of differing schedules, minimise additional meetings outside the lab, and allow each member to manage their responsibilities autonomously.
 
 ### Why we adopted this approach
 
-The approach was grounded in the intentions of our project plan, which emphasised asynchronous coordination through GitHub issues, documentation of progress, and clearly distributed responsibilities. :contentReference[oaicite:1]{index=1} This model is widely used in distributed software development, and it is well suited to student teams balancing multiple commitments.
+The approach was grounded in the intentions of our project plan, which emphasised asynchronous coordination through GitHub issues, documentation of progress, and clearly distributed responsibilities.  This model is widely used in distributed software development, and it is well suited to student teams balancing multiple commitments.
 
 ### Challenges that emerged
 
