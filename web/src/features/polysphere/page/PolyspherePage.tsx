@@ -1,7 +1,7 @@
 // web/src/features/polysphere/page/PolyspherePage.tsx
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PolysphereBoard } from "../components/PolysphereBoard";
-import { PiecePalette, DND_MIME } from "../components/PiecePalette";
+import { PiecePalette, DND_MIME } from "../../polysphere-core/components/PiecePalette";
 import { PIECE_SHAPES, toOffsets } from "../pieces";
 import {
   ALL_PIECES,
