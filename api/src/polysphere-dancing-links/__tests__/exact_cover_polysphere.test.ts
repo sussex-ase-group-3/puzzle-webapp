@@ -166,7 +166,7 @@ describe("Dancing Links Exact Cover Solver", () => {
   test("should find 8 solutions with pieces 6 and 8 on 3x3 board (dancing links)", () => {
     const { matrix, placements } = generateSmallMatrix([6, 8], 3, 3);
 
-    const solutions = solveDancingLinks(matrix);
+    const solutions = solveDancingLinks(matrix, placements);
     const solutionList = [];
 
     // Collect solutions with limit to avoid hanging
@@ -310,7 +310,7 @@ describe("Dancing Links Exact Cover Solver", () => {
     expect(matrix[0].length).toBe(67);
 
     const startTime = Date.now();
-    const solutions = solveDancingLinks(matrix);
+    const solutions = solveDancingLinks(matrix, placements);
     let firstSolution;
 
     // Get first solution
@@ -368,5 +368,26 @@ describe("Dancing Links Exact Cover Solver", () => {
     }
 
     expect(usedPieces.size).toBe(12);
+  });
+
+  test("should collect stats when measureStats is enabled", () => {
+    const { matrix, placements } = generateSmallMatrix([6, 8], 3, 3);
+
+    // Create a solver with stats enabled
+    const solutions = solveDancingLinks(matrix, placements, true);
+    const solutionList = [];
+
+    // Collect some solutions to trigger stats collection
+    let count = 0;
+    for (const solution of solutions) {
+      solutionList.push(solution);
+      count++;
+      if (count >= 2) break; // Just get a few solutions
+    }
+
+    expect(solutionList.length).toBeGreaterThan(0);
+    // Note: Stats are saved to file in solve() method with piece frequency counts,
+    // but we can't easily test that without mocking writeFileSync. The key functionality
+    // is that it doesn't crash when measureStats is true and the algorithm runs correctly.
   });
 });

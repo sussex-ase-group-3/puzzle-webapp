@@ -61,7 +61,7 @@ describe("3D Pyramid Dancing Links Solver", () => {
     const { matrix, placements } = matrixData;
 
     const startTime = Date.now();
-    const solutions = solveDancingLinks(matrix);
+    const solutions = solveDancingLinks(matrix, placements);
     let firstSolution;
 
     // Get first solution
