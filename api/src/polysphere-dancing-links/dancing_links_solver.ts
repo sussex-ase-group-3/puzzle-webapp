@@ -16,10 +16,11 @@ const { cloneDeep } = lodash;
 
 export type ExactCoverMatrix = number[][];
 
-//tracking dead states and checking which pieces have been left over and writing this to 
+//tracking dead states and checking which pieces have been left over and writing this to
 //ajson
 interface DLXStats {
-  //stats go here
+  pieceDeadEndCounts: { [pieceId: number]: number };
+  totalDeadEnds: number;
 }
 
 // Dancing Links Node
@@ -63,33 +64,39 @@ export class DancingLinksSolver {
 
   //My code added some new variables to make it easier to match pieces with imported piece shape
   private stats: {
-    [solutionId: string]: {
-      usedPieces: number[];
-      unusedPieces: number[];
-    };
-  } = {};
+    pieceDeadEndCounts: { [pieceId: number]: number };
+    totalDeadEnds: number;
+  } = {
+    pieceDeadEndCounts: {},
+    totalDeadEnds: 0,
+  };
   private matrix: ExactCoverMatrix;
   private placements: Array<{
     pieceId: number;
     position: [number, number];
     orientationIndex: number;
-  }>
+  }>;
   private tempUsedPieces: Set<number> = new Set();
-  private ALL_PIECE_IDS: number[]
+  private ALL_PIECE_IDS: number[];
   private measureStats: boolean;
-  
-  
+
   //Added more to constructor here (my code)
   constructor(
     matrix: ExactCoverMatrix,
-    placements: Array<{pieceId: number;position: [number, number];orientationIndex: number; }>, 
-    measureStats: boolean = false) {
-
+    placements: Array<{
+      pieceId: number;
+      position: [number, number];
+      orientationIndex: number;
+    }>,
+    measureStats: boolean = false,
+  ) {
     this.solution = [];
     this.matrix = matrix;
     this.placements = placements;
     this.measureStats = measureStats;
-    this.ALL_PIECE_IDS = PIECE_SHAPES.map((_, index) => index).filter(id => id !== 0);
+    this.ALL_PIECE_IDS = PIECE_SHAPES.map((_, index) => index).filter(
+      (id) => id !== 0,
+    );
     this.header = this.buildDLXStructure(matrix);
   }
 
@@ -239,36 +246,29 @@ export class DancingLinksSolver {
 
   /**
    * my code Another helper function
-   * stores all the unused pieces and used pieces from each solution with a unique Id
+   * counts how many times each piece appears in dead ends
    */
   private recordDeadEnd() {
     if (!this.measureStats) return;
 
-    //adding a unique Id for this dead_end
-    const solutionId = `deadend_${Object.keys(this.stats).length}`;
+    // Increment total dead end counter
+    this.stats.totalDeadEnds++;
 
-    //getting the usedPieces
+    // Increment count for each used piece in this dead end
     const usedPieces = Array.from(this.tempUsedPieces);
-
-    //All piece ids from puzzle
-    const unusedPieces = this.ALL_PIECE_IDS.filter(
-      (id) => !usedPieces.includes(id)
-    );
-
-    //store stats
-    this.stats[solutionId] = {
-      usedPieces,
-      unusedPieces,
-    };
+    for (const pieceId of usedPieces) {
+      if (!this.stats.pieceDeadEndCounts[pieceId]) {
+        this.stats.pieceDeadEndCounts[pieceId] = 0;
+      }
+      this.stats.pieceDeadEndCounts[pieceId]++;
+    }
   }
-
 
   /**
    * Recursive search using Dancing Links Algorithm X
    */
   private *search(): Generator<number[]> {
     // If header points to itself, matrix is empty - we have a solution
-    
 
     if (this.header.right === this.header) {
       yield [...this.solution];
@@ -288,6 +288,9 @@ export class DancingLinksSolver {
     // Cover the chosen column
     this.cover(col);
 
+    // Track if any solutions were found in this branch
+    let foundSolution = false;
+
     // Try each row in the chosen column
     let r = col.down;
     while (r !== col) {
@@ -297,7 +300,7 @@ export class DancingLinksSolver {
       //Adding used pieces by extracting rowID
       if (this.measureStats) {
         const pieceId = this.extractPieceIdFromRow(r.rowId);
-        this.tempUsedPieces.add(pieceId); 
+        this.tempUsedPieces.add(pieceId);
       }
 
       // Cover all other columns in this row
@@ -307,8 +310,12 @@ export class DancingLinksSolver {
         j = j.right;
       }
 
-      // Recurse
-      yield* this.search();
+      // Recurse and check if any solutions were found
+      const recursiveGenerator = this.search();
+      for (const solution of recursiveGenerator) {
+        foundSolution = true;
+        yield solution;
+      }
 
       // Backtrack: uncover all columns in this row (in reverse order)
       j = r.left;
@@ -319,12 +326,17 @@ export class DancingLinksSolver {
 
       if (this.measureStats) {
         const pieceId = this.extractPieceIdFromRow(r.rowId);
-        this.tempUsedPieces.delete(pieceId); 
+        this.tempUsedPieces.delete(pieceId);
       }
       // Remove row from partial solution
       this.solution.pop();
 
       r = r.down;
+    }
+
+    // If no solutions were found in any branch, this is a dead end
+    if (!foundSolution && this.measureStats) {
+      this.recordDeadEnd();
     }
 
     // Uncover the chosen column
@@ -359,15 +371,14 @@ export class DancingLinksSolver {
     }
   }
 
- 
   //private saveStats(): void {
-    //try {
-        //const outputPath = join(process.cwd(), "dlx_stats.json");
-        //writeFileSync(outputPath, JSON.stringify(this.stats))
-        //console.log(`stats saved to ${outputPath})
-    //} catch(err) {
-    //    console.error("Failed to save stats to file:", err)
-    //  }
+  //try {
+  //const outputPath = join(process.cwd(), "dlx_stats.json");
+  //writeFileSync(outputPath, JSON.stringify(this.stats))
+  //console.log(`stats saved to ${outputPath})
+  //} catch(err) {
+  //    console.error("Failed to save stats to file:", err)
+  //  }
   // }
 
   /**
@@ -385,8 +396,12 @@ export class DancingLinksSolver {
  */
 export function* solveDancingLinks(
   matrix: ExactCoverMatrix,
-  placements: Array<{pieceId: number;position: [number, number];orientationIndex: number; }>, 
-  measureStats: boolean = false
+  placements: Array<{
+    pieceId: number;
+    position: [number, number];
+    orientationIndex: number;
+  }>,
+  measureStats: boolean = false,
 ): Generator<number[]> {
   const solver = new DancingLinksSolver(matrix, placements, measureStats);
   yield* solver.solve();
@@ -475,7 +490,11 @@ export function* solve(state: {
     }
 
     // Solve using Dancing Links with filtered matrix
-    const solutions = solveDancingLinks(filteredMatrix, filteredPlacements, false);
+    const solutions = solveDancingLinks(
+      filteredMatrix,
+      filteredPlacements,
+      false,
+    );
 
     for (const solution of solutions) {
       // Convert solution to board format, starting with existing board
