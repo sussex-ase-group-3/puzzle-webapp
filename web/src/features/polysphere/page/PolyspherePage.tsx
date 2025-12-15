@@ -21,8 +21,101 @@ import {
   streamPolysphereSolutions,
   cancelPolysphereSolver,
 } from "../api";
-
 import { SolutionGrid } from "../components/SolutionGrid";
+
+//icons
+const PlayIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M4 2v20l18-10L4 2z" />
+  </svg>
+);
+const StreamIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M5 3v18l14-9L5 3z" />
+  </svg>
+);
+const CancelIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M18 6L6 18M6 6l12 12" strokeWidth="2" stroke="currentColor" />
+  </svg>
+);
+const ResetIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.46-.57 2.78-1.5 3.75l1.42 1.42C19.07 15.46 20 13.83 20 12c0-4.42-3.58-8-8-8zM6.08 6.08L4.66 7.5C3.57 8.62 3 10.26 3 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3c-3.31 0-6-2.69-6-6 0-1.46.57-2.78 1.5-3.75l-1.42-1.42z" />
+  </svg>
+);
+
+const Button = ({
+  children,
+  onClick,
+  disabled,
+  variant = "default",
+  style: styleProp,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  variant?: "default" | "primary" | "danger";
+  style?: React.CSSProperties;
+}) => {
+  const baseStyle: React.CSSProperties = {
+    padding: "10px 18px",
+    borderRadius: 8,
+    fontWeight: 500,
+    cursor: disabled ? "not-allowed" : "pointer",
+    transition: "all 0.2s ease",
+    border: "1px solid transparent",
+    outline: "none",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    boxShadow: disabled ? "none" : "0 2px 6px rgba(0,0,0,0.15)",
+    transform: "scale(1)",
+    userSelect: "none",
+  };
+
+  const variants: Record<string, React.CSSProperties> = {
+    default: { background: "#1b353c", color: "#ffffffff", borderColor: "#ccc" },
+    primary: { background: "#1b353c", color: "#ffffffff", borderColor: "#187bb5" },
+    danger: { background: "#dc2c2cff", color: "#ffffffff", borderColor: "#b0170c" },
+  };
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        ...baseStyle,
+        ...(variant in variants ? variants[variant] : {}),
+        ...(disabled
+          ? { opacity: 0.6, cursor: "not-allowed", boxShadow: "none" }
+          : {}),
+        ...styleProp,
+      }}
+      onMouseEnter={(e) => {
+        if (!disabled) {
+          e.currentTarget.style.filter = "brightness(1.1)";
+          e.currentTarget.style.transform = "scale(1.03)";
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!disabled) {
+          e.currentTarget.style.filter = "brightness(1)";
+          e.currentTarget.style.transform = "scale(1)";
+        }
+      }}
+      onMouseDown={(e) => {
+        if (!disabled) e.currentTarget.style.transform = "scale(0.97)";
+      }}
+      onMouseUp={(e) => {
+        if (!disabled) e.currentTarget.style.transform = "scale(1.03)";
+      }}
+    >
+      {children}
+    </button>
+  );
+};
 
 type DragPayload = { pieceId: number; turns: 0 | 1 | 2 | 3; flip: boolean };
 
@@ -46,6 +139,10 @@ export function PolyspherePage() {
   const [doneMessage, setDoneMessage] = useState<string | null>(null);
   const [maxSolutions, setMaxSolutions] = useState<number>(1000);
 
+  // infinite scroll
+  const galleryRef = useRef<HTMLDivElement | null>(null);
+  const [isFetching, setIsFetching] = useState(false);
+
   // preview cells for drag-over ghost
   const [preview, setPreview] = useState<Set<string> | null>(null);
 
@@ -53,7 +150,7 @@ export function PolyspherePage() {
   const placed = useMemo(() => piecesPresent(draft), [draft]);
   const disabledIds = placed;
 
-  // drag over: compute ghost from pointer target cell
+  //drag-n-drop
   const onDragOverBoard = (e: React.DragEvent<HTMLDivElement>) => {
     const data = e.dataTransfer.getData(DND_MIME);
     if (!data) {
@@ -69,7 +166,7 @@ export function PolyspherePage() {
     }
 
     const cell = (e.target as HTMLElement).closest(
-      "[data-cell]",
+      "[data-cell]"
     ) as HTMLElement | null;
     if (!cell) {
       setPreview(null);
@@ -81,7 +178,6 @@ export function PolyspherePage() {
     let offsets = rotateOffsets(base, payload.turns);
     if (payload.flip) offsets = flipHOffsets(offsets);
 
-    // build preview set (no validity colouring yet; simple ghost)
     const ghost = new Set<string>();
     for (const [dr, dc] of offsets) {
       const r = r0 + dr,
@@ -93,11 +189,9 @@ export function PolyspherePage() {
     setPreview(ghost);
   };
 
-  // drop: attempt to place
   const onDropOnBoard = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setPreview(null);
-
     const data = e.dataTransfer.getData(DND_MIME);
     if (!data) return;
 
@@ -109,7 +203,7 @@ export function PolyspherePage() {
     }
 
     const cell = (e.target as HTMLElement).closest(
-      "[data-cell]",
+      "[data-cell]"
     ) as HTMLElement | null;
     if (!cell) return;
     const [r0, c0] = cell.dataset.cell!.split(",").map(Number);
@@ -124,7 +218,6 @@ export function PolyspherePage() {
     }
 
     setDraft((b) => place(b, offsets, r0, c0, payload.pieceId));
-    // Optional: auto-mark disallowed in 'allowed' once placed (one copy each)
     setAllowed((a) => a.filter((id) => id !== payload.pieceId));
   };
 
@@ -133,9 +226,8 @@ export function PolyspherePage() {
       const pid = draft[r][c];
       if (pid > 0) {
         setDraft((b) => erasePiece(b, r, c));
-        // piece becomes available again
         setAllowed((a) =>
-          Array.from(new Set([...a, pid])).sort((x, y) => x - y),
+          Array.from(new Set([...a, pid])).sort((x, y) => x - y)
         );
       }
     }
@@ -169,7 +261,6 @@ export function PolyspherePage() {
     setDoneMessage(null);
     try {
       const res = await getNextPolysphereSolutions(10);
-
       const incoming = res.solutions.length;
       const before = solutionsCountRef.current;
       if (incoming > 0) {
@@ -179,14 +270,13 @@ export function PolyspherePage() {
           return next;
         });
       }
-
       if (res.isComplete) {
         setActive(false);
         const total = before + incoming;
         setDoneMessage(
           total === 0
             ? "No solutions found for this configuration."
-            : "No more solutions.",
+            : "No more solutions."
         );
       }
     } catch (e: any) {
@@ -197,7 +287,6 @@ export function PolyspherePage() {
   const onStream = async () => {
     setError(null);
     setDoneMessage(null);
-
     if (!active) {
       try {
         await onStart();
@@ -233,7 +322,7 @@ export function PolyspherePage() {
       setDoneMessage(
         count === 0
           ? "No solutions found for this configuration."
-          : "No more solutions.",
+          : "No more solutions."
       );
     });
 
@@ -254,15 +343,56 @@ export function PolyspherePage() {
     setDoneMessage(null);
   };
 
-  useEffect(
-    () => () => {
-      esRef.current?.close();
-    },
-    [],
-  );
+  useEffect(() => () => esRef.current?.close(), []);
 
   const latest = solutions.length ? solutions[solutions.length - 1] : null;
   const display = latest?.board ?? draft;
+
+
+  useEffect(() => {
+    if (!galleryRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const lastEntry = entries[0];
+
+        if (
+          lastEntry.isIntersecting &&
+          active &&
+          !streaming &&
+          !isFetching &&
+          !doneMessage
+        ) {
+          setIsFetching(true);
+          onNextBatch().finally(() => setIsFetching(false));
+        }
+      },
+      { root: null, rootMargin: "200px", threshold: 0 }
+    );
+
+    const sentinel = document.getElementById("solutions-sentinel");
+    if (sentinel) observer.observe(sentinel);
+
+    return () => {
+      if (sentinel) observer.unobserve(sentinel);
+    };
+  }, [active, streaming, isFetching, doneMessage, solutions]);
+
+  
+  useEffect(() => {
+    if (!galleryRef.current) return;
+    const gallery = galleryRef.current;
+
+    const isNearBottom =
+      gallery.scrollHeight - gallery.scrollTop - gallery.clientHeight < 100;
+
+    if (isNearBottom) {
+      gallery.scrollTo({
+        top: gallery.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [solutions]);
 
   return (
     <div>
@@ -276,7 +406,7 @@ export function PolyspherePage() {
           alignItems: "start",
         }}
       >
-        {/* Left: palette */}
+        
         <div style={{ display: "grid", gap: 12 }}>
           <PiecePalette
             selected={selected}
@@ -288,34 +418,49 @@ export function PolyspherePage() {
             disabledIds={disabledIds}
           />
 
-          <div style={{ display: "grid", gap: 6 }}>
-            <button onClick={onStart}>Start</button>
-            <button onClick={onNextBatch} disabled={!active || streaming}>
+          
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 10,
+              marginBottom: 12,
+            }}
+          >
+            <Button onClick={onStart} variant="primary" style={{ flex: "1 1 120px" }}>
+              <PlayIcon /> Start
+            </Button>
+
+            <Button onClick={onNextBatch} disabled={!active || streaming} style={{ flex: "1 1 120px" }}>
               Next 10
-            </button>
-            <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-              <button
-                onClick={onStream}
-                disabled={streaming}
-                style={{ flex: 1 }}
-              >
-                {streaming ? "Streaming…" : "Stream"}
-              </button>
-              <input
-                type="number"
-                value={maxSolutions}
-                onChange={(e) =>
-                  setMaxSolutions(parseInt(e.target.value) || 1000)
-                }
-                min="1"
-                max="100000"
-                style={{ width: "70px" }}
-                disabled={streaming}
-                title="Maximum solutions for streaming"
-              />
-            </div>
-            <button onClick={onCancel}>Cancel</button>
-            <button
+            </Button>
+
+            <Button onClick={onStream} disabled={streaming} variant="primary" style={{ flex: "1 1 140px" }}>
+              <StreamIcon /> {streaming ? "Streaming…" : "Stream"}
+            </Button>
+
+            <input
+              type="number"
+              value={maxSolutions}
+              onChange={(e) => setMaxSolutions(parseInt(e.target.value) || 1000)}
+              min={1}
+              max={100000}
+              style={{
+                flex: "0 0 80px",
+                padding: "6px 8px",
+                borderRadius: 8,
+                border: "1px solid #ccc",
+                textAlign: "center",
+              }}
+              disabled={streaming}
+              title="Maximum solutions for streaming"
+            />
+
+            <Button onClick={onCancel} variant="danger" style={{ flex: "1 1 120px" }}>
+              <CancelIcon /> Cancel
+            </Button>
+
+            <Button
               onClick={() => {
                 setDraft(emptyBoard());
                 setSolutions([]);
@@ -326,21 +471,18 @@ export function PolyspherePage() {
                 setDoneMessage(null);
                 setError(null);
               }}
+              style={{ flex: "1 1 120px" }}
             >
-              Reset
-            </button>
-
-            <div>
-              Active: {String(active)} • Received: {solutions.length}
-            </div>
+              <ResetIcon /> Reset
+            </Button>
           </div>
 
           {error && <div style={{ color: "crimson" }}>{error}</div>}
           {doneMessage && (
             <div
               style={{
-                color: "#155724",
-                background: "#d4edda",
+                color: "#f3033fff",
+                background: "#b2edf9ff",
                 border: "1px solid #c3e6cb",
                 padding: "8px 10px",
                 borderRadius: 6,
@@ -352,12 +494,9 @@ export function PolyspherePage() {
           )}
         </div>
 
-        {/* Right: board */}
         <div>
           <div style={{ marginBottom: 8, fontWeight: 600 }}>
-            {latest
-              ? "Latest solution"
-              : "Editor (drag a piece, right-click to erase)"}
+            {latest ? "Latest solution" : "Editor (drag a piece, right-click to erase)"}
           </div>
           <PolysphereBoard
             board={display}
@@ -370,25 +509,25 @@ export function PolyspherePage() {
           />
         </div>
       </div>
-      {/* All Solutions gallery */}
+
       {solutions.length > 0 && (
-        <div style={{ marginTop: 20 }}>
+        <div style={{ marginTop: 20, maxHeight: "500px", overflowY: "auto" }} ref={galleryRef}>
           <div style={{ marginBottom: 8, fontWeight: 600 }}>
             All solutions ({solutions.length})
           </div>
           <SolutionGrid
             solutions={solutions}
-            // Move clicked solution to the end so it becomes the "latest" in the big viewer
             onSelect={(idx) => {
               setSolutions((prev) => {
                 const sel = prev[idx];
                 return [...prev.slice(0, idx), ...prev.slice(idx + 1), sel];
               });
             }}
-            // Wider thumbs on big screens, still wraps nicely
             columns="repeat(auto-fill, minmax(150px, 1fr))"
             itemTitle={(i) => `Solution ${i + 1}`}
           />
+          <div id="solutions-sentinel" style={{ height: 1 }}></div>
+          {isFetching && <div style={{ padding: 8, textAlign: "center" }}>Loading more solutions…</div>}
         </div>
       )}
     </div>

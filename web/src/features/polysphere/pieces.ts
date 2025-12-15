@@ -19,7 +19,7 @@ export const PIECE_SHAPES: BoolGrid[] = [
 
 export const PIECE_COLOURS = [
     "", "#e51e0f","#f669a8","#f8b7d7","#1c8ed2","#faed5b",
-    "#b165a8","#713d96","#63ad68","#ea6a22","#129338","#fed04e","#8bcaf1",
+    "#b165a8","#713d96","#63ad68","#ea6a22","#129338","#fcb900ff","#8bcaf1",
 ];
 
 // turn a BoolGrid into [dr,dc] offsets anchored at (0,0)
