@@ -5,6 +5,9 @@ import {
   solve as polysphere_solve,
   createEmptyBoard,
 } from "./polysphere-dancing-links/dancing_links_solver.js";
+import { solveDancingLinks } from "./polysphere-dancing-links/dancing_links_solver.js";
+import { readFileSync } from "fs";
+import { join } from "path";
 import { PuzzleState } from "./polysphere/types.js";
 import { range } from "./utils.js";
 
@@ -16,6 +19,14 @@ let activeGenerator: {
   generator: Generator<PuzzleState>;
   maxSolutions: number | undefined;
   foundSolutions: number;
+} | null = null;
+
+// Store 3D active generator
+let active3DGenerator: {
+  generator: Generator<any>;
+  maxSolutions: number | undefined;
+  foundSolutions: number;
+  placements?: any[];
 } | null = null;
 
 // Middleware
@@ -302,6 +313,224 @@ app.delete("/polysphere/solver", (req, res) => {
   res.json({
     success: wasActive,
     message: wasActive ? "Solver cancelled" : "No active solver",
+  });
+});
+
+// Create polysphere 3D solver
+app.post("/polysphere-3d/solver", (req, res) => {
+  try {
+    const { board, remainingPieces, maxSolutions } = req.body;
+
+    // Load 3D matrix
+    let matrixData;
+    try {
+      const matrixPath = join(
+        process.cwd(),
+        "src/polysphere-dancing-links-3d/polysphere_exact_cover_matrix.json",
+      );
+      const fileContent = readFileSync(matrixPath, "utf8");
+      matrixData = JSON.parse(fileContent);
+    } catch (error) {
+      return res.status(500).json({
+        error: "3D matrix file not found. Generate it first.",
+        details: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+
+    const { matrix, placements } = matrixData;
+
+    // Create generator and store it (replaces any existing one)
+    const generator = solveDancingLinks(matrix, placements);
+    active3DGenerator = {
+      generator,
+      maxSolutions,
+      foundSolutions: 0,
+      placements, // Store placements for solution conversion
+    };
+
+    res.json({
+      success: true,
+      maxSolutions: maxSolutions ?? -1, // -1 indicates unlimited
+    });
+  } catch (error) {
+    console.error("Polysphere 3D solver error:", error);
+    res.status(500).json({
+      error: "Internal server error while creating Polysphere 3D solver",
+      details: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
+// Get next solutions from polysphere 3D solver
+app.get("/polysphere-3d/solver/next", (req, res) => {
+  try {
+    const { count = 1 } = req.query;
+    const requestedCount = parseInt(count as string) || 1;
+
+    if (!active3DGenerator) {
+      return res.status(404).json({
+        error: "No active 3D solver. Start one with POST /polysphere-3d/solver",
+      });
+    }
+
+    const solutions: any[] = [];
+    let isComplete = false;
+
+    for (let i = 0; i < requestedCount; i++) {
+      const result = active3DGenerator.generator.next();
+      if (result.done) {
+        isComplete = true;
+        break;
+      }
+      // Include placements data with each solution
+      solutions.push({
+        rowIndices: result.value,
+        placements: active3DGenerator.placements,
+      });
+      active3DGenerator.foundSolutions++;
+    }
+
+    // Capture values before cleanup
+    const currentFoundSolutions = active3DGenerator.foundSolutions;
+    const currentMaxSolutions = active3DGenerator.maxSolutions;
+
+    // Clean up if complete
+    if (isComplete) {
+      active3DGenerator = null;
+    }
+
+    res.json({
+      solutions,
+      isComplete,
+      foundSolutions: currentFoundSolutions,
+      maxSolutions: currentMaxSolutions ?? -1, // -1 indicates unlimited
+    });
+  } catch (error) {
+    console.error("Polysphere 3D next solutions error:", error);
+    res.status(500).json({
+      error: "Internal server error while getting next 3D solutions",
+      details: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
+// Stream 3D solutions at regular intervals using Server-Sent Events
+app.get("/polysphere-3d/solver/stream", (req, res) => {
+  const { interval = 500 } = req.query;
+  const intervalMs = parseInt(interval as string) || 500;
+
+  if (!active3DGenerator) {
+    return res.status(404).json({
+      error: "No active 3D solver. Start one with POST /polysphere-3d/solver",
+    });
+  }
+
+  // Set up SSE headers
+  res.writeHead(200, {
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache",
+    Connection: "keep-alive",
+    "Access-Control-Allow-Origin": "*",
+  });
+
+  let streamInterval: NodeJS.Timeout;
+
+  const sendSolutionBatch = () => {
+    const ag = active3DGenerator;
+    if (!ag) {
+      res.write("event: complete\n");
+      res.write('data: {"message": "3D Solver completed or cancelled"}\n\n');
+      clearInterval(streamInterval);
+      res.end();
+      return;
+    }
+
+    try {
+      const batchSize = 25; // Grab 25 solutions per interval
+      const solutions: any[] = [];
+      let isComplete = false;
+
+      for (let i = 0; i < batchSize; i++) {
+        const result = ag.generator.next();
+
+        if (result.done) {
+          isComplete = true;
+          break;
+        }
+
+        ag.foundSolutions++;
+        solutions.push({
+          rowIndices: result.value,
+          placements: ag.placements,
+        });
+
+        // Check if we've reached max solutions
+        if (
+          ag.maxSolutions !== undefined &&
+          ag.foundSolutions >= ag.maxSolutions
+        ) {
+          isComplete = true;
+          break;
+        }
+      }
+
+      // Send batch of solutions
+      if (solutions.length > 0) {
+        const data = {
+          solutions,
+          foundSolutions: ag.foundSolutions,
+          maxSolutions: ag.maxSolutions ?? -1, // -1 indicates unlimited
+        };
+
+        res.write("event: batch\n");
+        res.write(`data: ${JSON.stringify(data)}\n\n`);
+      }
+
+      // Handle completion
+      if (isComplete) {
+        // Capture final counts from ag BEFORE clearing the active generator
+        const finalFound = ag.foundSolutions;
+        const finalMax = ag.maxSolutions;
+        // Now clear the generator
+        active3DGenerator = null;
+        res.write("event: complete\n");
+        const message =
+          finalMax !== undefined
+            ? "Maximum solutions reached"
+            : "All solutions found";
+        res.write(
+          `data: {"message": "${message}", "foundSolutions": ${finalFound}, "maxSolutions": ${finalMax ?? -1}}\n\n`,
+        );
+        clearInterval(streamInterval);
+        res.end();
+      }
+    } catch (error) {
+      res.write("event: error\n");
+      res.write(
+        `data: ${JSON.stringify({ error: "Error generating 3D solution" })}\n\n`,
+      );
+      clearInterval(streamInterval);
+      res.end();
+    }
+  };
+
+  // Start streaming
+  streamInterval = setInterval(sendSolutionBatch, intervalMs);
+
+  // Clean up on client disconnect
+  req.on("close", () => {
+    clearInterval(streamInterval);
+  });
+});
+
+// Cancel polysphere 3D solver
+app.delete("/polysphere-3d/solver", (req, res) => {
+  const wasActive = active3DGenerator !== null;
+  active3DGenerator = null;
+
+  res.json({
+    success: wasActive,
+    message: wasActive ? "3D Solver cancelled" : "No active 3D solver",
   });
 });
 

@@ -236,6 +236,7 @@ function generateMatrix() {
     position: [number, number, number]; // Depends on orientation type
     orientationIndex: number;
     orientationType: "XY" | "XZ" | "YZ";
+    orientedShape: boolean[][];
   }> = [];
 
   // Generate all placements
@@ -255,6 +256,7 @@ function generateMatrix() {
                 position: [layer, row, col],
                 orientationIndex,
                 orientationType: "XY",
+                orientedShape: cloneDeep(shape),
               });
             }
           }
@@ -276,6 +278,7 @@ function generateMatrix() {
                 position: [startLayer, yPos, xPos],
                 orientationIndex,
                 orientationType: "XZ",
+                orientedShape: cloneDeep(shape),
               });
             }
           }
@@ -297,6 +300,7 @@ function generateMatrix() {
                 position: [startLayer, xPos, yPos],
                 orientationIndex,
                 orientationType: "YZ",
+                orientedShape: cloneDeep(shape),
               });
             }
           }
