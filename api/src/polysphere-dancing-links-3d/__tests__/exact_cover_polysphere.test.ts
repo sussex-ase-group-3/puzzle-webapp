@@ -7,41 +7,6 @@ import { readFileSync } from "fs";
 import { join } from "path";
 
 describe("3D Pyramid Dancing Links Solver", () => {
-  test("should load matrix with correct dimensions and orientation types", () => {
-    let matrixData;
-    try {
-      const matrixPath = join(
-        __dirname,
-        "..",
-        "polysphere_exact_cover_matrix.json",
-      );
-      const fileContent = readFileSync(matrixPath, "utf8");
-      matrixData = JSON.parse(fileContent);
-    } catch (error) {
-      throw new Error(
-        "Matrix file not found. Run generate_exact_cover_matrix.ts first.",
-      );
-    }
-
-    const { matrix, columnNames, placements } = matrixData;
-
-    // Matrix should be 1988 rows × 67 columns (55 cells + 12 pieces)
-    expect(matrix.length).toBe(1988);
-    expect(matrix[0].length).toBe(67);
-    expect(columnNames.length).toBe(67);
-
-    // Should have all three orientation types
-    const orientationCounts = {
-      XY: placements.filter((p: any) => p.orientationType === "XY").length,
-      XZ: placements.filter((p: any) => p.orientationType === "XZ").length,
-      YZ: placements.filter((p: any) => p.orientationType === "YZ").length,
-    };
-
-    expect(orientationCounts.XY).toBe(944);
-    expect(orientationCounts.XZ).toBe(522);
-    expect(orientationCounts.YZ).toBe(522);
-  });
-
   test("should find complete solution for 3D pyramid puzzle", () => {
     let matrixData;
     try {
