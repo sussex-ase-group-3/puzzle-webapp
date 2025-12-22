@@ -12,6 +12,16 @@ import { PuzzleState } from "./polysphere/types.js";
 import { range } from "./utils.js";
 
 const app = express();
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "http://localhost:5173");
+  res.header("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type");
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+  next();
+});
+
 const PORT = Number(process.env.PORT ?? 3000);
 
 // Store single active generator
